@@ -24,9 +24,12 @@ services:
       - PRETIX_SITE_URL=https://pretix.mawthook.io
       - PRETIX_DEFAULT_CURRENCY=KWD
     depends_on:
-      - db
-      - cache
-      - rabbitmq
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
     volumes:
       - ./pretix-config:/pretix-config
 
