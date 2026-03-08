@@ -6,12 +6,15 @@ services:
       - "${PRETIX_PORT:-8000}:80"
     environment:
       - PRETIX_SECRET_KEY=dev-secret-key-change-in-production
+      # pretix/standalone reads PRETIX_DATABASE_URL; keep explicit vars as fallback docs
+      - PRETIX_DATABASE_URL=postgres://pretix:pretix@db:5432/pretix
       - PRETIX_DATABASE_TYPE=postgresql
       - PRETIX_DATABASE_NAME=pretix
       - PRETIX_DATABASE_USER=pretix
       - PRETIX_DATABASE_PASSWORD=pretix
       - PRETIX_DATABASE_HOST=db
       - PRETIX_DATABASE_PORT=5432
+      - PRETIX_REDIS_URL=redis://cache:6379/0
       - PRETIX_REDIS_LOCATION=redis://cache:6379/0
       - PRETIX_REDIS_SESSION=true
       - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
@@ -36,10 +39,20 @@ services:
       - POSTGRES_DB=pretix
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pretix -d pretix"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   cache:
     image: redis:7-alpine
     container_name: yadawi-pretix-redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
