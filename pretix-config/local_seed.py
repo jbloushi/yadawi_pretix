@@ -7,6 +7,7 @@ from django_scopes import scope
 from pretix.base.models import Organizer, Event, Item, Quota, Team, TeamAPIToken
 
 def seed():
+    print("--- STARTING SEEDING PROCESS ---")
     try:
         # Create both organizers for compatibility
         tokens = {}
