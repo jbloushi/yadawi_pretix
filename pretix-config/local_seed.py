@@ -60,7 +60,7 @@ def seed():
                         'date_from': now() + timedelta(days=7 + i),
                         'live': True,
                         'is_public': True,
-                        'currency': org_slug === 'yadawi' ? 'KWD' : 'SAR',
+                        'currency': 'KWD' if org_slug == 'yadawi' else 'SAR',
                         'plugins': 'pretix.plugins.sendmail,pretix.plugins.banktransfer'
                     }
                 )

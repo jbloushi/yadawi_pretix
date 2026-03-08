@@ -111,7 +111,7 @@ To create baseline data (organizers, API tokens, sample events), you can run the
 1. Ensure the Docker containers are running.
 2. Run the following command from the project root:
    ```bash
-    docker exec -i yadawi-pretix pretix shell < /pretix-config/local_seed.py
+    docker exec -i yadawi-pretix pretix shell < ./pretix-config/local_seed.py
     ```
 
     *Note: This script is idempotent and can be run safely multiple times.*
