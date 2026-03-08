@@ -108,11 +108,7 @@ When new changes are pushed to GitHub, you need to pull the changes onto your VP
 To populate the Pretix database with organizers, API tokens, and sample workshops, run the following command from the project root:
 
 ```bash
-docker exec -it yadawi-pretix python3 -m pretix shell -c "exec(open('/pretix-config/local_seed.py').read())"
-```
-*Note: If that fails, try this simpler one which pipes directly:*
-```bash
-cat ./pretix-config/local_seed.py | docker exec -i yadawi-pretix pretix shell
+docker exec yadawi-pretix python3 /pretix-config/local_seed.py
 ```
 
 **Verify the output:** You should see "SEEDING COMPLETED SUCCESSFULLY" and the generated API tokens. Ensure these tokens match your `.env` file (`PRETIX_API_TOKEN` and `PRETIX_SA_API_TOKEN`).

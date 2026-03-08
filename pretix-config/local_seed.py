@@ -1,6 +1,13 @@
 import os
 import sys
+import django
 from datetime import timedelta
+
+# Bootstrap Django environment if run directly
+if __name__ == "__main__":
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "pretix.settings")
+    django.setup()
+
 from django.utils.timezone import now
 from i18nfield.strings import LazyI18nString
 from django_scopes import scope
@@ -37,7 +44,7 @@ def seed():
                         'can_change_event_settings': True,
                     }
                 )
-                if not team.all_events:
+                if not team.all_events or created:
                     team.all_events = True
                     team.save()
 
@@ -51,8 +58,6 @@ def seed():
                     defaults={'name': 'Frontend Token', 'active': True}
                 )
                 
-                # If it already exists but with a different value (unlikely with get_or_create on token), 
-                # we want to ensure we know the value.
                 tokens[org_slug] = token_val
                 
                 if t_created:
