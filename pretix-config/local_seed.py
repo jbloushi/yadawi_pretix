@@ -95,7 +95,10 @@ def seed():
                     team.all_events = True
                     team.save()
 
-                token_val = '3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceirozhsz'
+                # Shorten base token to fit within 64 chars even with SA_ prefix
+                # Original was 64 chars, making SA_ 67 chars. 
+                # New base is 60 chars.
+                token_val = '3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceiro'
                 if org_slug == 'yadawi-sa':
                     token_val = 'SA_' + token_val
 
