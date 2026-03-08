@@ -6,8 +6,6 @@ services:
       - "${PRETIX_PORT:-8000}:80"
     environment:
       - PRETIX_SECRET_KEY=dev-secret-key-change-in-production
-      - PRETIX_CONFIG_FILE=/pretix-config/pretix.docker.cfg
-      - PRETIX_INI=/pretix-config/pretix.docker.cfg
       # pretix/standalone reads PRETIX_DATABASE_URL; keep explicit vars as fallback docs
       - PRETIX_DATABASE_URL=postgres://pretix:pretix@db:5432/pretix
       - PRETIX_DATABASE_TYPE=postgresql
