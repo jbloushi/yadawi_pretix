@@ -14,9 +14,18 @@ def seed():
     try:
         from django.conf import settings
         from django.db import connections
+        import inspect
         
+        print(f"DEBUG: settings module: {settings.SETTINGS_MODULE}")
+        try:
+            settings_file = inspect.getfile(sys.modules[settings.SETTINGS_MODULE])
+            print(f"DEBUG: settings file path: {settings_file}")
+        except:
+            pass
+
         db_engine = settings.DATABASES['default']['ENGINE']
         print(f"Current Django DB Engine: {db_engine}")
+        print(f"Current Django DB Name: {settings.DATABASES['default']['NAME']}")
         
         if 'sqlite' in db_engine and 'postgres' in db_url:
             print("⚠️ FORCING POSTGRES CONFIGURATION...")
