@@ -11,18 +11,25 @@ def seed():
     print("🔍 DIAGNOSTIC AUDIT STARTING")
     print("="*60)
     print(f"Python Version: {sys.version}")
-    print(f"Current Directory: {os.getcwd()}")
-    print(f"PRETIX_DATABASE_URL: {os.environ.get('PRETIX_DATABASE_URL', 'NOT SET')}")
+    
+    db_url = os.environ.get('PRETIX_DATABASE_URL', 'NOT SET')
+    print(f"PRETIX_DATABASE_URL in Env: {db_url}")
     
     try:
         from django.conf import settings
+        from django.db import connections
+        
         db_engine = settings.DATABASES['default']['ENGINE']
-        print(f"Django DB Engine: {db_engine}")
-        if 'sqlite' in db_engine:
-            print("⚠️ WARNING: Django is using SQLite! This is why seeding fails.")
-            print("The environment variables from Docker Compose are not being picked up.")
+        print(f"Current Django DB Engine: {db_engine}")
+        
+        if 'sqlite' in db_engine and 'postgres' in db_url:
+            print("⚠️ FORCING POSTGRES CONFIGURATION...")
+            import dj_database_url
+            settings.DATABASES['default'] = dj_database_url.config(default=db_url)
+            connections['default'].close()
+            print(f"New Django DB Engine: {settings.DATABASES['default']['ENGINE']}")
     except Exception as e:
-        print(f"Failed to check Django settings: {e}")
+        print(f"Failed to check or force Django settings: {e}")
 
     print("\n--- STARTING SEEDING PROCESS ---")
     try:
