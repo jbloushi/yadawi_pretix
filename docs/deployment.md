@@ -167,6 +167,32 @@ journalctl -u pretix-web -f
 systemctl restart pretix-web pretix-worker
 ```
 
+
+#### pretix uses SQLite instead of PostgreSQL ("unable to open database file")
+```bash
+# Verify runtime DB engine inside container
+docker exec yadawi-pretix pretix shell -c "from django.conf import settings; print(settings.DATABASES['default']['ENGINE'])"
+
+# It must be postgresql. If it prints sqlite3, ensure pretix loads the docker INI:
+# PRETIX_CONFIG_FILE=/pretix-config/pretix.docker.cfg
+# PRETIX_INI=/pretix-config/pretix.docker.cfg
+# and check the INI has host=db and redis host=cache.
+
+# Recreate cleanly
+docker compose down
+docker compose up -d --force-recreate
+
+
+# Confirm the config file is visible inside container
+docker exec yadawi-pretix sh -lc "ls -l /pretix-config/pretix.docker.cfg && sed -n '1,80p' /pretix-config/pretix.docker.cfg"
+
+# Re-run migrations/rebuild if needed
+docker exec yadawi-pretix pretix migrate
+docker exec yadawi-pretix pretix rebuild
+```
+
+If the DB container is still initializing, wait until Postgres is healthy before rerunning pretix commands.
+
 #### Frontend not loading
 ```bash
 # Check PM2 logs
