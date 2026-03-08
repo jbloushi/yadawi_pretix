@@ -132,6 +132,40 @@ password = YOUR_SMTP_PASSWORD
     └── webhook-events.md
 ```
 
+
+## Seed & Dump (workshops, users, sales)
+
+### Seed sample workshops
+
+```bash
+# Run inside the pretix container/app host
+python3 /workspace/yadawi_pretix/pretix-config/local_seed.py
+```
+
+### Dump workshops/events
+
+```bash
+python3 /pretix/src/manage.py dumpdata pretixbase.event --indent 2 > events_dump.json
+```
+
+### Dump users
+
+```bash
+python3 /pretix/src/manage.py dumpdata auth.user --indent 2 > users_dump.json
+```
+
+### Dump sales (orders + positions)
+
+```bash
+python3 /pretix/src/manage.py dumpdata pretixbase.order pretixbase.orderposition --indent 2 > sales_dump.json
+```
+
+### SQL backup (full DB)
+
+```bash
+pg_dump -U <db_user> <db_name> > pretix_full_$(date +%F).sql
+```
+
 ## API Endpoints
 
 ### Events
