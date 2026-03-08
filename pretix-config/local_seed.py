@@ -1,21 +1,9 @@
 import os
-import sys
-import django
-from datetime import datetime, timedelta
+from datetime import timedelta
 from django.utils.timezone import now
-
-# Setup path and settings for standalone image
-sys.path.insert(0, '/pretix/src')
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'production_settings')
-
-try:
-    django.setup()
-    from i18nfield.strings import LazyI18nString
-    from django_scopes import scope
-    from pretix.base.models import Organizer, Event, Item, Quota, Team, TeamAPIToken
-except Exception as e:
-    print(f"Import error: {e}")
-    sys.exit(1)
+from i18nfield.strings import LazyI18nString
+from django_scopes import scope
+from pretix.base.models import Organizer, Event, Item, Quota, Team, TeamAPIToken
 
 def seed():
     # Create both organizers for compatibility
@@ -72,7 +60,7 @@ def seed():
                         'date_from': now() + timedelta(days=7 + i),
                         'live': True,
                         'is_public': True,
-                        'currency': 'SAR',
+                        'currency': org_slug === 'yadawi' ? 'KWD' : 'SAR',
                         'plugins': 'pretix.plugins.sendmail,pretix.plugins.banktransfer'
                     }
                 )

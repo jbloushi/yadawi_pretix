@@ -74,7 +74,7 @@ When new changes are pushed to GitHub, you need to pull the changes onto your VP
 2. **Pull the latest changes**  
    ```bash
    git fetch origin
-   git pull origin main
+   git pull origin master
    ```
    *(Change `main` if your branch name is different, like `master`)*
 
@@ -111,9 +111,10 @@ To create baseline data (organizers, API tokens, sample events), you can run the
 1. Ensure the Docker containers are running.
 2. Run the following command from the project root:
    ```bash
-   docker exec yadawi-pretix python3 /pretix-config/local_seed.py
-   ```
-   *Note: This script creates the 'yadawi' and 'yadawi-sa' organizers and a standard API token.*
+    docker exec -i yadawi-pretix pretix shell < /pretix-config/local_seed.py
+    ```
+
+    *Note: This script is idempotent and can be run safely multiple times.*
 
 ---
 

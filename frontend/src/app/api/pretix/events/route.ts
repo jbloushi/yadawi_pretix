@@ -59,6 +59,23 @@ export async function GET(_request: NextRequest) {
     const allEvents: any[] = [];
     console.log(`API: Fetching events from ${PRETIX_API_URL}`);
 
+    // Determine the host from the URL to bypass 'Unknown host' (400) errors in Pretix
+    const getPretixHeaders = (token: string) => {
+      const headers: Record<string, string> = {
+        'Authorization': `Token ${token}`,
+        'Content-Type': 'application/json',
+      };
+
+      try {
+        const urlObj = new URL(PRETIX_API_URL);
+        headers['Host'] = urlObj.host;
+      } catch (e) {
+        // Fallback if URL is invalid
+      }
+
+      return headers;
+    };
+
     // Fetch events from all organizers in parallel
     const orgPromises = ORGANIZERS.map(async (org) => {
       try {
@@ -66,15 +83,13 @@ export async function GET(_request: NextRequest) {
         console.log(`API: Requesting events for ${org.slug} from ${url}`);
 
         const response = await fetch(url, {
-          headers: {
-            'Authorization': `Token ${org.token}`,
-            'Content-Type': 'application/json'
-          },
+          headers: getPretixHeaders(org.token),
+          next: { revalidate: 60 } // Cache for 60 seconds
         });
 
         if (!response.ok) {
           const errorText = await response.text();
-          console.error(`API: Failed fetch for ${org.slug}. Status: ${response.status}, Error: ${errorText}`);
+          console.error(`API: Failed fetch for ${org.slug}. Status: ${response.status}, Error: ${errorText.substring(0, 200)}`);
           return [];
         }
 
@@ -84,34 +99,36 @@ export async function GET(_request: NextRequest) {
 
         // For each event, fetch its items to get the minimum price in parallel
         const enrichedEvents = await Promise.all(events.map(async (e: any) => {
-          const normalized = normalizeEvent(e, org.slug);
+          const normalized = normalizeEvent(e, org.slug); // Keep normalizeEvent for initial event data
           let minPrice = undefined;
 
           try {
-            const itemsRes = await fetch(`${PRETIX_API_URL}/api/v1/organizers/${org.slug}/events/${e.slug}/items/`, {
-              headers: { 'Authorization': `Token ${org.token}`, 'Content-Type': 'application/json' },
+            const itemsUrl = `${PRETIX_API_URL}/api/v1/organizers/${org.slug}/events/${e.slug}/items/`;
+            const itemsRes = await fetch(itemsUrl, {
+              headers: getPretixHeaders(org.token),
+              next: { revalidate: 60 }
             });
 
             if (itemsRes.ok) {
               const itemsData = await itemsRes.json();
-              const prices = (itemsData.results || []).map((item: any) =>
-                parseFloat(item.default_price || item.price || '0')
-              );
-              const validPrices = prices.filter((p: number) => p > 0);
-              if (validPrices.length > 0) {
-                minPrice = Math.min(...validPrices);
+              const items = itemsData.results || [];
+              const prices = items
+                .map((i: any) => parseFloat(i.default_price || i.price || '0'))
+                .filter((p: number) => p > 0);
+
+              if (prices.length > 0) {
+                minPrice = Math.min(...prices);
               }
             }
           } catch (err) {
             console.error(`API: Error fetching items for ${e.slug}:`, err);
           }
-
           return { ...normalized, minPrice };
         }));
 
         return enrichedEvents;
-      } catch (err) {
-        console.error(`API: Connection error for ${org.slug}:`, err);
+      } catch (error) {
+        console.error(`API: Error fetching from ${org.slug}:`, error);
         return [];
       }
     });

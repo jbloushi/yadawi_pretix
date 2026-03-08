@@ -141,7 +141,9 @@ export function WorkshopDetailPage({ slug }: { slug: string }) {
 
     setAddedToCart(true);
     setSelectedItems({});
-    window.dispatchEvent(new Event('addToCart'));
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('addToCart'));
+    }
     setTimeout(() => setAddedToCart(false), 2000);
   };
 
