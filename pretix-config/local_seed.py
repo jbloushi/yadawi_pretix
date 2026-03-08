@@ -24,10 +24,26 @@ def seed():
         
         if 'sqlite' in db_engine and 'postgres' in db_url:
             print("⚠️ FORCING POSTGRES CONFIGURATION...")
-            import dj_database_url
-            settings.DATABASES['default'] = dj_database_url.config(default=db_url)
+            try:
+                import dj_database_url
+                settings.DATABASES['default'] = dj_database_url.config(default=db_url)
+            except ImportError:
+                print("dj_database_url not found, using manual parsing...")
+                from urllib.parse import urlparse
+                result = urlparse(db_url)
+                settings.DATABASES['default'] = {
+                    'ENGINE': 'django.db.backends.postgresql',
+                    'NAME': result.path.lstrip('/'),
+                    'USER': result.username,
+                    'PASSWORD': result.password,
+                    'HOST': result.hostname,
+                    'PORT': result.port or '',
+                }
+            
+            # Reset connection
             connections['default'].close()
             print(f"New Django DB Engine: {settings.DATABASES['default']['ENGINE']}")
+            print(f"New Django DB Host: {settings.DATABASES['default'].get('HOST')}")
     except Exception as e:
         print(f"Failed to check or force Django settings: {e}")
 

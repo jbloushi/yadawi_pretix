@@ -55,7 +55,7 @@ Run the Docker containers and seed the database:
 ```bash
 cd /www/wwwroot/yadawi_pretix
 docker-compose up -d
-docker exec yadawi-pretix python3 /pretix-config/local_seed.py
+docker exec -i yadawi-pretix python3 -m pretix shell -i python < ./pretix-config/local_seed.py
 ```
 
 ---
@@ -98,17 +98,15 @@ When new changes are pushed to GitHub, you need to pull the changes onto your VP
    docker-compose up -d --build
    
    # (Optional) Run seeding to ensure latest organisers/tokens are present
-   docker exec yadawi-pretix python3 /pretix-config/local_seed.py
+   docker exec -i yadawi-pretix python3 -m pretix shell -i python < ./pretix-config/local_seed.py
    ```
 
 ---
 
-## 6. Database Seeding (Pretix)
-
 To populate the Pretix database with organizers, API tokens, and sample workshops, run the following command from the project root:
 
 ```bash
-docker exec -i yadawi-pretix python3 -m pretix shell < ./pretix-config/local_seed.py
+docker exec -i yadawi-pretix python3 -m pretix shell -i python < ./pretix-config/local_seed.py
 ```
 
 **Verify the output:** You should see "SEEDING COMPLETED SUCCESSFULLY" and the generated API tokens. Ensure these tokens match your `.env` file (`PRETIX_API_TOKEN` and `PRETIX_SA_API_TOKEN`).
