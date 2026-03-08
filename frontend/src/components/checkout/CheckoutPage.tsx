@@ -103,6 +103,12 @@ function CheckoutForm() {
   const vat = Math.round(subtotal * vatRate);
   const totalWithVat = subtotal + vat;
 
+  useEffect(() => {
+    if (items.length === 0 && !successOrderCode && step !== 3) {
+      router.push('/cart');
+    }
+  }, [items, successOrderCode, step, router]);
+
   if (successOrderCode || step === 3) {
     return (
       <div style={{ backgroundColor: COLORS.cream, minHeight: '100vh' }}>
@@ -139,13 +145,7 @@ function CheckoutForm() {
     );
   }
 
-  useEffect(() => {
-    if (items.length === 0 && !successOrderCode && step !== 3) {
-      router.push('/cart');
-    }
-  }, [items, successOrderCode, step, router]);
-
-  if (items.length === 0 && !successOrderCode && step !== 3) {
+  if (items.length === 0) {
     return null;
   }
 
