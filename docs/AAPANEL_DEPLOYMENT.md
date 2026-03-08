@@ -105,20 +105,29 @@ When new changes are pushed to GitHub, you need to pull the changes onto your VP
 
 ## 6. Database Seeding (Pretix)
 
-To create baseline data (organizers, API tokens, sample events), you can run the idempotent seeding script inside the Docker container.
+To populate the Pretix database with organizers, API tokens, and sample workshops, run the following command from the project root:
 
-### Running the Seed Script
-1. Ensure the Docker containers are running.
-2. Run the following command from the project root:
-   ```bash
-    docker exec -i yadawi-pretix pretix shell < ./pretix-config/local_seed.py
-    ```
+```bash
+docker exec -i yadawi-pretix pretix shell < ./pretix-config/local_seed.py
+```
+
+**Verify the output:** You should see "SEEDING COMPLETED SUCCESSFULLY" and the generated API tokens. Ensure these tokens match your `.env` file (`PRETIX_API_TOKEN` and `PRETIX_SA_API_TOKEN`).
+
+### 7. Create Admin Account
+
+To access the Pretix backend (e.g., `https://pretix.mawthook.io/control/`), you need a superuser account:
+
+```bash
+docker exec -it yadawi-pretix pretix createsuperuser
+```
+
+Follow the prompts to enter your email and password.
 
     *Note: This script is idempotent and can be run safely multiple times.*
 
 ---
 
-## 7. Reset/Clear aaPanel Node Project Cache  
+## 8. Reset/Clear aaPanel Node Project Cache  
 If you have issues where changes aren't reflecting, sometimes aaPanel Node server caches old variables. In aaPanel dashboard:
 - Go to **Website** -> **Node projects**.
 - Stop and Start the Node project completely (restart using pm2 as mentioned is generally enough, but aaPanel's manager may need a hard restart if env file was updated). Wait for port to show up properly again.

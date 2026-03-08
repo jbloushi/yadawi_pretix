@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useCart } from '@/lib/cart';
@@ -139,8 +139,13 @@ function CheckoutForm() {
     );
   }
 
-  if (items.length === 0) {
-    router.push('/cart');
+  useEffect(() => {
+    if (items.length === 0 && !successOrderCode && step !== 3) {
+      router.push('/cart');
+    }
+  }, [items, successOrderCode, step, router]);
+
+  if (items.length === 0 && !successOrderCode && step !== 3) {
     return null;
   }
 
