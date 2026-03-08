@@ -17,7 +17,7 @@ export function BranchProvider({ children }: { children: ReactNode }) {
     const [branch, setBranch] = useState<Branch>('KWT');
 
     useEffect(() => {
-        console.log(`BranchProvider: Current branch is ${branch}`);
+        console.log(`[DEBUG] BranchProvider: Current branch is ${branch}`);
     }, [branch]);
 
     const orgSlug = branch === 'KWT' ? 'yadawi' : 'yadawi-sa';

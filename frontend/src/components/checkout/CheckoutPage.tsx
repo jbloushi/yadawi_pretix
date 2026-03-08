@@ -103,13 +103,17 @@ function CheckoutForm() {
   const vat = Math.round(subtotal * vatRate);
   const totalWithVat = subtotal + vat;
 
+  console.log(`[DEBUG] CheckoutForm: step=${step}, submitting=${submitting}, success=${!!successOrderCode}`);
+
   useEffect(() => {
     if (items.length === 0 && !successOrderCode && step !== 3) {
+      console.log('[DEBUG] CheckoutForm: Redirecting to cart...');
       router.push('/cart');
     }
-  }, [items, successOrderCode, step, router]);
+  }, [items.length, successOrderCode, step, router]);
 
   if (successOrderCode || step === 3) {
+    console.log('[DEBUG] CheckoutForm: Rendering Success UI');
     return (
       <div style={{ backgroundColor: COLORS.cream, minHeight: '100vh' }}>
         <div style={{
