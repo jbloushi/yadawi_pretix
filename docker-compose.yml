@@ -32,6 +32,8 @@ services:
         condition: service_started
     volumes:
       - ./pretix-config:/pretix-config
+      - ./pretix-config/pretix.docker.cfg:/etc/pretix/pretix.cfg:ro
+      - pretix_data:/data
 
   db:
     image: postgres:15
@@ -67,3 +69,4 @@ services:
 
 volumes:
   postgres_data:
+  pretix_data:
