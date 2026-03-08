@@ -7,6 +7,23 @@ from django_scopes import scope
 from pretix.base.models import Organizer, Event, Item, Quota, Team, TeamAPIToken
 
 def seed():
+    print("\n" + "="*60)
+    print("🔍 DIAGNOSTIC AUDIT STARTING")
+    print("="*60)
+    print(f"Python Version: {sys.version}")
+    print(f"Current Directory: {os.getcwd()}")
+    print(f"PRETIX_DATABASE_URL: {os.environ.get('PRETIX_DATABASE_URL', 'NOT SET')}")
+    
+    try:
+        from django.conf import settings
+        db_engine = settings.DATABASES['default']['ENGINE']
+        print(f"Django DB Engine: {db_engine}")
+        if 'sqlite' in db_engine:
+            print("⚠️ WARNING: Django is using SQLite! This is why seeding fails.")
+            print("The environment variables from Docker Compose are not being picked up.")
+    except Exception as e:
+        print(f"Failed to check Django settings: {e}")
+
     print("\n--- STARTING SEEDING PROCESS ---")
     try:
         # Create both organizers for compatibility
