@@ -1,20 +1,13 @@
 import os
 import sys
-import django
 from datetime import timedelta
-
-# Bootstrap Django environment if run directly
-if __name__ == "__main__":
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "pretix.settings")
-    django.setup()
-
 from django.utils.timezone import now
 from i18nfield.strings import LazyI18nString
 from django_scopes import scope
 from pretix.base.models import Organizer, Event, Item, Quota, Team, TeamAPIToken
 
 def seed():
-    print("--- STARTING SEEDING PROCESS ---")
+    print("\n--- STARTING SEEDING PROCESS ---")
     try:
         # Create both organizers for compatibility
         tokens = {}
@@ -28,6 +21,8 @@ def seed():
             )
             if created:
                 print(f"Created organizer: {org_slug}")
+            else:
+                print(f"Verified organizer: {org_slug}")
 
             with scope(organizer=organizer):
                 # 2. Create Team and Token
@@ -91,6 +86,8 @@ def seed():
                             defaults={'default_price': 100}
                         )
                         item.quotas.add(quota)
+                    else:
+                        print(f"Verified event exists: {slug}")
 
         print("\n" + "="*60)
         print("🚀 SEEDING COMPLETED SUCCESSFULLY")
@@ -105,7 +102,6 @@ def seed():
         print(f"\n❌ ERROR DURING SEEDING: {e}")
         import traceback
         traceback.print_exc()
-        sys.exit(1)
 
-if __name__ == "__main__":
-    seed()
+# Run the seeding
+seed()
