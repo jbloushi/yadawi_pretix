@@ -18,6 +18,8 @@ services:
       - db
       - cache
       - rabbitmq
+    volumes:
+      - ./pretix-config:/pretix-config
 
   db:
     image: postgres:15

@@ -48,13 +48,16 @@ def seed():
             team.save()
 
             token_val = '3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceirozhsz'
+            if org_slug == 'yadawi-sa':
+                token_val = 'SA_' + token_val
+
             _, t_created = TeamAPIToken.objects.get_or_create(
                 team=team,
                 token=token_val,
                 defaults={'name': 'Frontend Token', 'active': True}
             )
             if t_created:
-                print(f"Created API token for {org_slug}")
+                print(f"Created API token for {org_slug}: {token_val}")
 
             # 3. Create Sample Events
             for i in range(1, 4):

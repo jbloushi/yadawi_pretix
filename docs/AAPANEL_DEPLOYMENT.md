@@ -28,7 +28,7 @@ Since your repository is private, your VPS needs authentication to clone and pul
 1. In aaPanel, go to **Files** and navigate to your `www/wwwroot` directory. Alternatively, log in via SSH and run:
    ```bash
    cd /www/wwwroot
-   git clone git@github.com:yourusername/yadawi_pretix.git
+   git clone git@github.com:jbloushi/yadawi_pretix.git
    cd yadawi_pretix
    ```
 
@@ -51,10 +51,11 @@ If using aaPanel's Node.js project manager:
    ```
 
 ### Running Backend/Docker Setup (Pretix)
-Run the Docker containers:
+Run the Docker containers and seed the database:
 ```bash
 cd /www/wwwroot/yadawi_pretix
 docker-compose up -d
+docker exec yadawi-pretix python3 /pretix-config/local_seed.py
 ```
 
 ---
@@ -95,12 +96,31 @@ When new changes are pushed to GitHub, you need to pull the changes onto your VP
    cd /www/wwwroot/yadawi_pretix
    docker-compose pull   # pull any new docker images if applicable
    docker-compose up -d --build
+   
+   # (Optional) Run seeding to ensure latest organisers/tokens are present
+   docker exec yadawi-pretix python3 /pretix-config/local_seed.py
    ```
 
-6. **Reset/Clear aaPanel Node Project Cache**  
-   If you have issues where changes aren't reflecting, sometimes aaPanel Node server caches old variables. In aaPanel dashboard:
-   - Go to **Website** -> **Node projects**.
-   - Stop and Start the Node project completely (restart using pm2 as mentioned is generally enough, but aaPanel's manager may need a hard restart if env file was updated). Wait for port to show up properly again.
+---
+
+## 6. Database Seeding (Pretix)
+
+To create baseline data (organizers, API tokens, sample events), you can run the idempotent seeding script inside the Docker container.
+
+### Running the Seed Script
+1. Ensure the Docker containers are running.
+2. Run the following command from the project root:
+   ```bash
+   docker exec yadawi-pretix python3 /pretix-config/local_seed.py
+   ```
+   *Note: This script creates the 'yadawi' and 'yadawi-sa' organizers and a standard API token.*
+
+---
+
+## 7. Reset/Clear aaPanel Node Project Cache  
+If you have issues where changes aren't reflecting, sometimes aaPanel Node server caches old variables. In aaPanel dashboard:
+- Go to **Website** -> **Node projects**.
+- Stop and Start the Node project completely (restart using pm2 as mentioned is generally enough, but aaPanel's manager may need a hard restart if env file was updated). Wait for port to show up properly again.
 
 ---
 
