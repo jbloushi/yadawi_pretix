@@ -61,6 +61,15 @@ def seed():
         from django_scopes import scope
         from pretix.base.models import Organizer, Event, Item, Quota, Team, TeamAPIToken
 
+        print(f"DEBUG: Found {Organizer.objects.count()} total organizers in DB.")
+        print(f"DEBUG: Found {Event.objects.count()} total events in DB.")
+        
+        # List them all for debugging
+        for o in Organizer.objects.all():
+            print(f"DEBUG: Existing Organizer: {o.slug}")
+        for e in Event.objects.all():
+            print(f"DEBUG: Existing Event: {e.slug} (Org: {e.organizer.slug})")
+
         # Create both organizers for compatibility
         tokens = {}
         for org_slug, org_name, org_name_ar in [
