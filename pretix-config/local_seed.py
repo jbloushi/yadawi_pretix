@@ -20,24 +20,30 @@ def seed():
         
         if 'sqlite' in db_engine and 'postgres' in db_url:
             print("⚠️ FORCING POSTGRES CONFIGURATION...")
+            # Copy existing settings to keep TIME_ZONE, ATOMIC_REQUESTS, etc.
+            new_db_config = settings.DATABASES['default'].copy()
+            
             try:
                 import dj_database_url
-                settings.DATABASES['default'] = dj_database_url.config(default=db_url)
+                new_db_config.update(dj_database_url.config(default=db_url))
             except ImportError:
                 print("dj_database_url not found, using manual parsing...")
                 from urllib.parse import urlparse
                 result = urlparse(db_url)
-                settings.DATABASES['default'] = {
+                new_db_config.update({
                     'ENGINE': 'django.db.backends.postgresql',
                     'NAME': result.path.lstrip('/'),
                     'USER': result.username,
                     'PASSWORD': result.password,
                     'HOST': result.hostname,
                     'PORT': result.port or '',
-                }
+                })
             
-            # Reset connection
-            connections['default'].close()
+            # Ensure TIME_ZONE is present, fallback to settings.TIME_ZONE
+            if 'TIME_ZONE' not in new_db_config:
+                new_db_config['TIME_ZONE'] = getattr(settings, 'TIME_ZONE', 'UTC')
+                
+            settings.DATABASES['default'] = new_db_config
             # Delete from connections so it gets re-created with new settings
             del connections['default']
             
