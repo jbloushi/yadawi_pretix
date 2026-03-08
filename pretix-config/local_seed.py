@@ -1,10 +1,6 @@
 import os
 import sys
 from datetime import timedelta
-from django.utils.timezone import now
-from i18nfield.strings import LazyI18nString
-from django_scopes import scope
-from pretix.base.models import Organizer, Event, Item, Quota, Team, TeamAPIToken
 
 def seed():
     print("\n" + "="*60)
@@ -42,13 +38,23 @@ def seed():
             
             # Reset connection
             connections['default'].close()
-            print(f"New Django DB Engine: {settings.DATABASES['default']['ENGINE']}")
-            print(f"New Django DB Host: {settings.DATABASES['default'].get('HOST')}")
+            # Delete from connections so it gets re-created with new settings
+            del connections['default']
+            
+            from django.db import connections as new_connections
+            print(f"New Django DB Engine: {new_connections['default'].settings_dict['ENGINE']}")
+            print(f"New Django DB Host: {new_connections['default'].settings_dict.get('HOST')}")
     except Exception as e:
         print(f"Failed to check or force Django settings: {e}")
 
+    # NOW import models after override
     print("\n--- STARTING SEEDING PROCESS ---")
     try:
+        from django.utils.timezone import now
+        from i18nfield.strings import LazyI18nString
+        from django_scopes import scope
+        from pretix.base.models import Organizer, Event, Item, Quota, Team, TeamAPIToken
+
         # Create both organizers for compatibility
         tokens = {}
         for org_slug, org_name, org_name_ar in [
