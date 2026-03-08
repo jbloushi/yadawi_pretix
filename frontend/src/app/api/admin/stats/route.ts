@@ -11,8 +11,8 @@ export async function GET(request: NextRequest) {
 
     try {
         const organizers = [
-            { slug: 'yadawi', token: '3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceirozhsz' },
-            { slug: 'yadawi-sa', token: 'SA_3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceirozhsz' }
+            { slug: 'yadawi', token: process.env.PRETIX_API_TOKEN || '3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceirozhsz' },
+            { slug: 'yadawi-sa', token: process.env.PRETIX_SA_API_TOKEN || 'SA_3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceirozhsz' }
         ];
         let totalOrders = 0;
         let totalRevenue = 0;
@@ -23,6 +23,7 @@ export async function GET(request: NextRequest) {
         const now = new Date();
         const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
 
+        console.log('Stats API: Fetching dashboard statistics...');
         for (const org of organizers) {
             try {
                 const headers = { 'Authorization': `Token ${org.token}` };

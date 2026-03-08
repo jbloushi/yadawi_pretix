@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
 export type Branch = 'KWT' | 'KSA';
 
@@ -14,7 +14,11 @@ interface BranchContextType {
 const BranchContext = createContext<BranchContextType | undefined>(undefined);
 
 export function BranchProvider({ children }: { children: ReactNode }) {
-    const [branch, setBranch] = useState<Branch>('KSA');
+    const [branch, setBranch] = useState<Branch>('KWT');
+
+    useEffect(() => {
+        console.log(`BranchProvider: Current branch is ${branch}`);
+    }, [branch]);
 
     const orgSlug = branch === 'KWT' ? 'yadawi' : 'yadawi-sa';
 

@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
 
     const allOrganizers = [
       { slug: 'yadawi', token: process.env.PRETIX_API_TOKEN || '3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceirozhsz', branch: 'KWT' },
-      { slug: 'yadawi-sa', token: process.env.PRETIX_API_TOKEN_SA || 'SA_3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceirozhsz', branch: 'KSA' },
+      { slug: 'yadawi-sa', token: process.env.PRETIX_SA_API_TOKEN || 'SA_3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceirozhsz', branch: 'KSA' },
     ];
     const organizers = effectiveBranch === 'ALL'
       ? allOrganizers

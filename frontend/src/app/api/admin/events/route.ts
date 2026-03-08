@@ -51,24 +51,29 @@ export async function GET(request: NextRequest) {
 
     // All organizers, then restricted by branch
     const allOrganizers = [
-      { slug: 'yadawi', token: '3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceirozhsz', branch: 'KWT' },
-      { slug: 'yadawi-sa', token: 'SA_3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceirozhsz', branch: 'KSA' },
+      { slug: 'yadawi', token: process.env.PRETIX_API_TOKEN || '3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceirozhsz', branch: 'KWT' },
+      { slug: 'yadawi-sa', token: process.env.PRETIX_SA_API_TOKEN || 'SA_3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceirozhsz', branch: 'KSA' },
     ];
     const organizers = effectiveBranch === 'ALL'
       ? allOrganizers
       : allOrganizers.filter(o => o.branch === effectiveBranch);
 
     const allEvents: any[] = [];
+    console.log(`Admin API: Fetching events for branch: ${effectiveBranch}`);
 
     for (const org of organizers) {
       try {
         const headers = { 'Authorization': `Token ${org.token}` };
-        const eventsData = await pretixFetch<{ results: any[] }>(`organizers/${org.slug}/events/?${params.toString()}`, { headers });
-        console.log(`Admin events API - Got ${eventsData.results.length} events for ${org.slug}`);
+        const url = `organizers/${org.slug}/events/?${params.toString()}`;
+        console.log(`Admin API: Fetching from ${org.slug} - ${url}`);
+
+        const eventsData = await pretixFetch<{ results: any[] }>(url, { headers });
+        console.log(`Admin API: Got ${eventsData.results.length} events for ${org.slug}`);
+
         const augmented = eventsData.results.map(e => ({ ...e, _token: org.token, _orgSlug: org.slug, _branch: org.branch }));
         allEvents.push(...augmented);
       } catch (err) {
-        console.error(`Error fetching events for ${org.slug}:`, err);
+        console.error(`Admin API: Error fetching events for ${org.slug}:`, err);
       }
     }
 
