@@ -12,6 +12,7 @@ services:
       - PRETIX_MAIL_HOST=mail
       - PRETIX_MAIL_PORT=25
       - PRETIX_TIME_ZONE=Asia/Kuwait
+      - PRETIX_SITE_URL=https://pretix.mawthook.io
       - PRETIX_DEFAULT_CURRENCY=KWD
     depends_on:
       - db

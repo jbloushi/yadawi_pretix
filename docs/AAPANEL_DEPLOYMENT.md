@@ -128,7 +128,47 @@ If your VPS already has applications running on Port `8000` (Pretix) or `3000` (
    *(Note: The `-- -p 3005` tells Next.js to listen on port 3005)*
 
 ---
-## 4. Troubleshooting
+
+## 4. Production Domain Setup (Live VPS)
+
+When moving from IP-based access to your final domains (e.g., `pretix.mawthook.io` and `logstic.mawthook.io`), follow these steps:
+
+### A. Environment Configuration (`frontend/.env.local`)
+Update your frontend environment variables to use the final HTTPS domains:
+```env
+# pretix API URL (Production Domain)
+NEXT_PUBLIC_PRETIX_URL=https://pretix.mawthook.io
+
+# Application URLs
+NEXT_PUBLIC_APP_URL=https://logstic.mawthook.io
+NEXTAUTH_URL=https://logstic.mawthook.io
+```
+
+### B. aaPanel Reverse Proxy Configuration
+You need two separate Website entries in aaPanel, each with its own Reverse Proxy:
+
+1. **Pretix Backend Website (`pretix.mawthook.io`)**:
+   - Go to **Website** -> `pretix.mawthook.io` -> **Reverse Proxy**.
+   - **Target URL**: `http://127.0.0.1:8000` (or your chosen `PRETIX_PORT`).
+   - *Tip: Ensure you have deleted the default `index.html` from the root folder.*
+
+2. **Frontend Website (`logstic.mawthook.io`)**:
+   - Go to **Website** -> `logstic.mawthook.io` -> **Reverse Proxy**.
+   - **Target URL**: `http://127.0.0.1:3005` (or your chosen Next.js port).
+   - *Tip: Delete the default `index.html` here too.*
+
+### C. Build and Restart
+After changing environment variables, you **must** rebuild the Next.js application:
+```bash
+cd /www/wwwroot/yadawi_pretix/frontend
+npm run build
+pm2 restart yadawi-frontend
+```
+
+---
+
+## 5. Troubleshooting
 - **Cannot Pull from Git**: Ensure your SSH Deploy Key hasn't expired or changed. Test the connection with `ssh -T git@github.com`.
-- **Failed to Build Next.js**: Check your RAM usage on the VPS. Next.js builds can sometimes crash if you run out of memory. If this is a problem, consider creating a swapfile or upgrading the VPS RAM.
-- **502 Bad Gateway / Port Conflicts**: Confirm the Next.js app is bound to the correct port specified in your aaPanel reverse proxy or configurations.
+- **Failed to Build Next.js**: Check your RAM usage on the VPS. Next.js builds can sometimes crash if you run out of memory. 
+- **502 Bad Gateway**: This usually means the Target URL in your Reverse Proxy doesn't match the port the app is actually listening on. Check with `netstat -ano | findstr :3005`.
+- **aaPanel Default Page**: If you see "Congratulations, the site is created successfully!", it means you haven't deleted the `index.html` file from the site's directory or the Reverse Proxy isn't enabled.
