@@ -173,19 +173,13 @@ systemctl restart pretix-web pretix-worker
 # Verify runtime DB engine inside container
 docker exec yadawi-pretix pretix shell -c "from django.conf import settings; print(settings.DATABASES['default']['ENGINE'])"
 
-# It must be postgresql.
-# Also check what DB env vars container received:
-docker exec yadawi-pretix env | grep -E "PRETIX_DATABASE|PRETIX_REDIS|PRETIX_INI|PRETIX_CONFIG"
-# If it prints sqlite3, ensure pretix loads the docker INI:
-# /etc/pretix/pretix.cfg exists in container and has host=db and redis host=cache.
+# It must be postgresql. If it prints sqlite3, verify env vars in compose:
+# PRETIX_DATABASE_URL=postgres://pretix:pretix@db:5432/pretix
+# PRETIX_REDIS_URL=redis://cache:6379/0
 
 # Recreate cleanly
 docker compose down
 docker compose up -d --force-recreate
-
-
-# Confirm the config file is visible inside container
-docker exec yadawi-pretix sh -lc "ls -l /etc/pretix/pretix.cfg && sed -n '1,120p' /etc/pretix/pretix.cfg"
 
 # Re-run migrations/rebuild if needed
 docker exec yadawi-pretix pretix migrate
