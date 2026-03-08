@@ -1,0 +1,67 @@
+<div class="row">
+    <div class="col-xs-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Online Payment (Card & Apple Pay)</h3>
+            </div>
+            <div class="panel-body text-center" style="padding: 30px;">
+                <p>Click below to open the secure payment gateway to complete your payment.</p>
+                
+                <button type="button" id="nbk-pay-btn" class="btn btn-primary btn-lg" style="margin-top: 15px;">
+                    Pay {{ amount|floatformat:2 }} {{ currency }}
+                </button>
+
+                <!-- Hidden form to submit back to Pretix -->
+                <form id="nbk-return-form" method="POST" action="{{ return_url }}" style="display: none;">
+                    {% csrf_token %}
+                    <input type="hidden" id="resultIndicator" name="resultIndicator">
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://nbkpayment.gateway.mastercard.com/checkout/version/73/checkout.js"
+        data-error="errorCallback"
+        data-cancel="cancelCallback"
+        data-complete="completeCallback">
+</script>
+
+<script type="text/javascript">
+    (function() {
+        Checkout.configure({
+            session: {
+                id: '{{ session_id }}'
+            },
+            interaction: {
+                merchant: {
+                    name: 'Yadawi',
+                },
+                displayControl: {
+                    billingAddress: 'HIDE',
+                    shipping: 'HIDE'
+                }
+            }
+        });
+
+        document.getElementById('nbk-pay-btn').addEventListener('click', function() {
+            Checkout.showPaymentPage();
+        });
+    })();
+
+    function errorCallback(error) {
+        console.error("Payment Gateway Error:", JSON.stringify(error));
+        alert("There was an error initializing the payment gateway. Please try again or choose another payment method.");
+    }
+
+    function cancelCallback() {
+        console.log('Payment was cancelled by user');
+        // Do nothing, let user click pay again or choose another method
+    }
+
+    function completeCallback(resultIndicator, sessionVersion) {
+        // Submit the result indicator back to Pretix to confirm
+        document.getElementById('resultIndicator').value = resultIndicator;
+        document.getElementById('nbk-return-form').submit();
+    }
+</script>

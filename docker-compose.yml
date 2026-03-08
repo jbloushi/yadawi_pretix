@@ -1,0 +1,44 @@
+services:
+  pretix:
+    image: pretix/standalone:latest
+    container_name: yadawi-pretix
+    ports:
+      - "8000:80"
+    environment:
+      - PRETIX_SECRET_KEY=dev-secret-key-change-in-production
+      - PRETIX_DATABASE_URL=postgres://pretix:pretix@db:5432/pretix
+      - PRETIX_REDIS_URL=redis://cache:6379/0
+      - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
+      - PRETIX_MAIL_HOST=mail
+      - PRETIX_MAIL_PORT=25
+      - PRETIX_TIME_ZONE=Asia/Kuwait
+      - PRETIX_DEFAULT_CURRENCY=KWD
+    depends_on:
+      - db
+      - cache
+      - rabbitmq
+
+  db:
+    image: postgres:15
+    container_name: yadawi-pretix-db
+    environment:
+      - POSTGRES_USER=pretix
+      - POSTGRES_PASSWORD=pretix
+      - POSTGRES_DB=pretix
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  cache:
+    image: redis:7-alpine
+    container_name: yadawi-pretix-redis
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: yadawi-pretix-rabbitmq
+
+  mail:
+    image: mailhog/mailhog
+    container_name: yadawi-pretix-mail
+
+volumes:
+  postgres_data:
