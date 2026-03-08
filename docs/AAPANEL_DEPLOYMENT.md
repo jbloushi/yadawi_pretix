@@ -103,7 +103,32 @@ When new changes are pushed to GitHub, you need to pull the changes onto your VP
    - Stop and Start the Node project completely (restart using pm2 as mentioned is generally enough, but aaPanel's manager may need a hard restart if env file was updated). Wait for port to show up properly again.
 
 ---
-## Troubleshooting
+
+## 3. Handling Port Conflicts (Other Apps on VPS)
+
+If your VPS already has applications running on Port `8000` (Pretix) or `3000` (Next.js), you can change them easily:
+
+### Changing the Pretix Port (Backend)
+1. Open your terminal in the root folder.
+2. Create or edit a `.env` file in the **root** folder (not the frontend one).
+3. Add: `PRETIX_PORT=8080` (or any free port).
+4. Restart docker: `docker-compose up -d`.
+
+### Changing the Next.js Port (Frontend)
+1. In `frontend/.env.local`, update:
+   - `NEXT_PUBLIC_PRETIX_URL=http://127.0.0.1:8080` (Match the backend port above).
+   - `NEXT_PUBLIC_APP_URL=http://YOUR_IP:3005` (New frontend port).
+   - `NEXTAUTH_URL=http://YOUR_IP:3005`.
+2. Rebuild: `npm run build`.
+3. Restart PM2 with the new port:
+   ```bash
+   pm2 delete yadawi-frontend
+   pm2 start npm --name "yadawi-frontend" -- start -- -p 3005
+   ```
+   *(Note: The `-- -p 3005` tells Next.js to listen on port 3005)*
+
+---
+## 4. Troubleshooting
 - **Cannot Pull from Git**: Ensure your SSH Deploy Key hasn't expired or changed. Test the connection with `ssh -T git@github.com`.
 - **Failed to Build Next.js**: Check your RAM usage on the VPS. Next.js builds can sometimes crash if you run out of memory. If this is a problem, consider creating a swapfile or upgrading the VPS RAM.
 - **502 Bad Gateway / Port Conflicts**: Confirm the Next.js app is bound to the correct port specified in your aaPanel reverse proxy or configurations.

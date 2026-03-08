@@ -3,7 +3,7 @@ services:
     image: pretix/standalone:latest
     container_name: yadawi-pretix
     ports:
-      - "8000:80"
+      - "${PRETIX_PORT:-8000}:80"
     environment:
       - PRETIX_SECRET_KEY=dev-secret-key-change-in-production
       - PRETIX_DATABASE_URL=postgres://pretix:pretix@db:5432/pretix
