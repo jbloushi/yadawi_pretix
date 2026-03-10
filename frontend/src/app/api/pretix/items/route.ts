@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCache, setCache } from '@/lib/pretix-cache';
 
-const PRETIX_API_URL = 'https://pretix.mawthook.io';
+// STATIC VERIFIED TOKEN - Both organizers use this long 64-char token
 const VERIFIED_TOKEN = '3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceirozhsz';
+const PRETIX_API_URL = 'https://pretix.mawthook.io';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -13,11 +14,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Missing slug' }, { status: 400 });
   }
 
-  const token =
-    (org === 'yadawi-sa'
-      ? process.env.PRETIX_SA_API_TOKEN
-      : process.env.PRETIX_API_TOKEN) || VERIFIED_TOKEN;
-
   const cacheKey = `items-${org}-${slug}`;
   const cachedData = getCache(cacheKey);
   if (cachedData) {
@@ -27,10 +23,9 @@ export async function GET(request: NextRequest) {
   try {
     const response = await fetch(`${PRETIX_API_URL}/api/v1/organizers/${org}/events/${slug}/items/`, {
       headers: {
-        'Authorization': `Token ${token}`,
+        'Authorization': `Token ${VERIFIED_TOKEN}`,
         'Content-Type': 'application/json',
       },
-
     });
 
     if (!response.ok) {

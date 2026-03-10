@@ -1,30 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCache, setCache } from '@/lib/pretix-cache';
 
+// STATIC VERIFIED TOKEN - Both organizers use this long 64-char token
+const VERIFIED_TOKEN = '3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceirozhsz';
 const PRETIX_API_URL = 'https://pretix.mawthook.io';
 
-// Verified tokens from VPS database - both organizers use the same long token
-const FALLBACK_TOKENS = {
-  'yadawi': '3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceirozhsz',
-  'yadawi-sa': '3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceirozhsz'
-};
-
-const getOrganizerToken = (orgSlug: 'yadawi' | 'yadawi-sa') => {
-  let token = '';
-  if (orgSlug === 'yadawi-sa') {
-    token = process.env.PRETIX_SA_API_TOKEN || process.env.NEXT_PUBLIC_PRETIX_SA_API_TOKEN || '';
-  } else {
-    token = process.env.PRETIX_API_TOKEN || process.env.NEXT_PUBLIC_PRETIX_API_TOKEN || '';
-  }
-  
-  // Use fallback if env is empty or too short (invalid)
-  // We explicitly check for >= 64 to ensure it's the correct long token including 'zhsz'
-  return (token && token.length >= 64) ? token : FALLBACK_TOKENS[orgSlug];
-};
-
 const ORGANIZERS = [
-  { slug: 'yadawi', token: getOrganizerToken('yadawi') },
-  { slug: 'yadawi-sa', token: getOrganizerToken('yadawi-sa') },
+  { slug: 'yadawi', token: VERIFIED_TOKEN },
+  { slug: 'yadawi-sa', token: VERIFIED_TOKEN },
 ];
 
 /** Safely convert any Pretix field to a plain string. Handles: string, {en:..., ar:...}, null, {} */
@@ -81,12 +64,6 @@ export async function GET(request: NextRequest) {
     const allEvents: any[] = [];
     console.log(`API: Fetching events from ${PRETIX_API_URL}`);
 
-    const configuredOrganizers = ORGANIZERS.filter((org) => org.token);
-    if (configuredOrganizers.length === 0) {
-      console.error('API: No Pretix API tokens available.');
-      return NextResponse.json({ error: 'Pretix API token is not configured' }, { status: 500 });
-    }
-
     const getPretixHeaders = (token: string) => {
       return {
         'Authorization': `Token ${token}`,
@@ -95,7 +72,7 @@ export async function GET(request: NextRequest) {
     };
 
     // Fetch events from all organizers in parallel
-    const orgPromises = configuredOrganizers.map(async (org) => {
+    const orgPromises = ORGANIZERS.map(async (org) => {
       try {
         const url = `${PRETIX_API_URL}/api/v1/organizers/${org.slug}/events/`;
         const headers = getPretixHeaders(org.token);
@@ -114,9 +91,9 @@ export async function GET(request: NextRequest) {
             organizer: org.slug, 
             ok: false, 
             status: response.status, 
-            error: errorText, // Capture much more for troubleshooting 500
+            error: errorText.substring(0, 1000), // Full error body if possible
             url: url,
-            headers_sent: { ...headers, Authorization: `Token ${org.token.substring(0, 10)}...` }
+            headers_sent: { ...headers, Authorization: `Token ${org.token.substring(0, 5)}...` }
           });
           return [];
         }
