@@ -44,6 +44,8 @@ export async function GET(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url);
+    const debugMode = searchParams.get('debug') === '1';
+    const debug: any[] = [];
     const status = searchParams.get('status');
     const search = searchParams.get('search');
     // branch filter from query (for ALL users) or from session
@@ -83,11 +85,13 @@ export async function GET(request: NextRequest) {
 
         const eventsData = await pretixFetch<{ results: any[] }>(url, { headers });
         console.log(`Admin API: Got ${eventsData.results.length} events for ${org.slug}`);
+        debug.push({ organizer: org.slug, ok: true, events: eventsData.results.length });
 
         const augmented = eventsData.results.map(e => ({ ...e, _token: org.token, _orgSlug: org.slug, _branch: org.branch }));
         allEvents.push(...augmented);
       } catch (err) {
         console.error(`Admin API: Error fetching events for ${org.slug}:`, err);
+        debug.push({ organizer: org.slug, ok: false, error: String(err) });
       }
     }
 
@@ -155,10 +159,10 @@ export async function GET(request: NextRequest) {
 
     eventsWithStats.sort((a: any, b: any) => new Date(b.date_from).getTime() - new Date(a.date_from).getTime());
 
-    return NextResponse.json({ results: eventsWithStats });
+    return NextResponse.json(debugMode ? { results: eventsWithStats, debug } : { results: eventsWithStats });
   } catch (error) {
     console.error('Admin events error:', error);
-    return NextResponse.json({ error: 'Failed to fetch events' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to fetch events', details: String(error) }, { status: 500 });
   }
 }
 

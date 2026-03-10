@@ -48,8 +48,12 @@ export function WorkshopDetailPage({ slug }: { slug: string }) {
   useEffect(() => {
     async function fetchData() {
       try {
-        const eventsRes = await fetch('/api/pretix/events');
+        const eventsRes = await fetch('/api/pretix/events?debug=1');
         const eventsData = await eventsRes.json();
+        if (!eventsRes.ok) {
+          console.error('Workshop detail API debug payload:', eventsData);
+          throw new Error(eventsData.error || 'Failed to load events');
+        }
         const foundEvent = (eventsData.results || []).find((e: PretixEvent) => e.slug === slug);
 
         if (!foundEvent) {

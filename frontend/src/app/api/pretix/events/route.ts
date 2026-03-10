@@ -56,12 +56,15 @@ function normalizeEvent(event: any, orgSlug: string) {
   };
 }
 
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
+  const debugMode = request.nextUrl.searchParams.get('debug') === '1';
+  const debug: any[] = [];
+
   try {
     const cachedData = getCache('events');
     if (cachedData) {
       console.log('API: Returning cached events');
-      return NextResponse.json(cachedData);
+      return NextResponse.json(debugMode ? { ...cachedData, debug } : cachedData);
     }
 
     const allEvents: any[] = [];
@@ -98,12 +101,13 @@ export async function GET(_request: NextRequest) {
 
         const response = await fetch(url, {
           headers: getPretixHeaders(org.token),
-          next: { revalidate: 60 } // Cache for 60 seconds
+          next: { revalidate: 60 },
         });
 
         if (!response.ok) {
           const errorText = await response.text();
           console.error(`API: Failed fetch for ${org.slug}. Status: ${response.status}, Error: ${errorText.substring(0, 200)}`);
+          debug.push({ organizer: org.slug, ok: false, status: response.status, error: errorText.substring(0, 200) });
           return [];
         }
 
@@ -111,9 +115,8 @@ export async function GET(_request: NextRequest) {
         const events = data.results || [];
         console.log(`API: Found ${events.length} events for ${org.slug}`);
 
-        // For each event, fetch its items to get the minimum price in parallel
         const enrichedEvents = await Promise.all(events.map(async (e: any) => {
-          const normalized = normalizeEvent(e, org.slug); // Keep normalizeEvent for initial event data
+          const normalized = normalizeEvent(e, org.slug);
           let minPrice = undefined;
 
           try {
@@ -140,9 +143,11 @@ export async function GET(_request: NextRequest) {
           return { ...normalized, minPrice };
         }));
 
+        debug.push({ organizer: org.slug, ok: true, events: events.length });
         return enrichedEvents;
       } catch (error) {
         console.error(`API: Error fetching from ${org.slug}:`, error);
+        debug.push({ organizer: org.slug, ok: false, error: String(error) });
         return [];
       }
     });
@@ -152,7 +157,6 @@ export async function GET(_request: NextRequest) {
 
     console.log(`API: Total enriched events fetched: ${allEvents.length}`);
 
-    // Sort by date ascending
     allEvents.sort((a, b) => {
       const dateA = a.date_from ? new Date(a.date_from).getTime() : 0;
       const dateB = b.date_from ? new Date(b.date_from).getTime() : 0;
@@ -161,12 +165,11 @@ export async function GET(_request: NextRequest) {
 
     const finalData = { count: allEvents.length, next: null, previous: null, results: allEvents };
 
-    // Update cache
     setCache('events', finalData);
 
-    return NextResponse.json(finalData);
+    return NextResponse.json(debugMode ? { ...finalData, debug } : finalData);
   } catch (error) {
     console.error('API: Critical error in GET events:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error', debug }, { status: 500 });
   }
 }

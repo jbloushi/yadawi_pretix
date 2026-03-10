@@ -26,9 +26,12 @@ export function WorkshopsPage() {
   useEffect(() => {
     async function fetchEvents() {
       try {
-        const res = await fetch('/api/pretix/events');
-        if (!res.ok) throw new Error('Failed to fetch');
+        const res = await fetch('/api/pretix/events?debug=1');
         const data = await res.json();
+        if (!res.ok) {
+          console.error('Workshops API debug payload:', data);
+          throw new Error(data.error || 'Failed to fetch');
+        }
         setEvents(data.results || []);
       } catch (err) {
         console.error('Error fetching events:', err);
