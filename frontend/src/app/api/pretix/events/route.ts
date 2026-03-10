@@ -18,6 +18,7 @@ const getOrganizerToken = (orgSlug: 'yadawi' | 'yadawi-sa') => {
   }
   
   // Use fallback if env is empty or too short (invalid)
+  // We explicitly check for >= 64 to ensure it's the correct long token including 'zhsz'
   return (token && token.length >= 64) ? token : FALLBACK_TOKENS[orgSlug];
 };
 
@@ -93,9 +94,10 @@ export async function GET(request: NextRequest) {
       };
       
       // CRITICAL: Pretix/Django requires 'Host' to match its configuration (pretix.mawthook.io)
-      // When calling 'localhost:8000' from the same machine, we MUST override this to prevent 500/DisallowedHost
       if (PRETIX_API_URL.includes('localhost') || PRETIX_API_URL.includes('127.0.0.1')) {
         headers['Host'] = 'pretix.mawthook.io';
+        headers['X-Forwarded-Host'] = 'pretix.mawthook.io';
+        headers['X-Forwarded-Proto'] = 'https';
       }
       
       return headers;
@@ -121,9 +123,9 @@ export async function GET(request: NextRequest) {
             organizer: org.slug, 
             ok: false, 
             status: response.status, 
-            error: errorText.substring(0, 500),
+            error: errorText, // Capture much more for troubleshooting 500
             url: url,
-            headers_sent: { ...headers, Authorization: 'Token [HIDDEN]' }
+            headers_sent: { ...headers, Authorization: `Token ${org.token.substring(0, 10)}...` }
           });
           return [];
         }
