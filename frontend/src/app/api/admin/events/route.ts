@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { pretixFetch } from '@/lib/pretix';
 
+const getOrganizerToken = (orgSlug: 'yadawi' | 'yadawi-sa') => {
+  if (orgSlug === 'yadawi-sa') {
+    return process.env.PRETIX_SA_API_TOKEN || process.env.NEXT_PUBLIC_PRETIX_SA_API_TOKEN || '';
+  }
+
+  return process.env.PRETIX_API_TOKEN || process.env.NEXT_PUBLIC_PRETIX_API_TOKEN || '';
+};
+
 /** Safely resolve a Pretix multilingual field to a plain string */
 function toStr(val: any, fallback = ''): string {
   if (!val) return fallback;
@@ -36,6 +44,8 @@ export async function GET(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url);
+    const debugMode = searchParams.get('debug') === '1';
+    const debug: any[] = [];
     const status = searchParams.get('status');
     const search = searchParams.get('search');
     // branch filter from query (for ALL users) or from session
@@ -51,12 +61,22 @@ export async function GET(request: NextRequest) {
 
     // All organizers, then restricted by branch
     const allOrganizers = [
-      { slug: 'yadawi', token: process.env.PRETIX_API_TOKEN || '3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceirozhsz', branch: 'KWT' },
-      { slug: 'yadawi-sa', token: process.env.PRETIX_SA_API_TOKEN || 'SA_3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceirozhsz', branch: 'KSA' },
+      { slug: 'yadawi', token: getOrganizerToken('yadawi'), branch: 'KWT' },
+      { slug: 'yadawi-sa', token: getOrganizerToken('yadawi-sa'), branch: 'KSA' },
     ];
-    const organizers = effectiveBranch === 'ALL'
+    const branchFilteredOrganizers = effectiveBranch === 'ALL'
       ? allOrganizers
       : allOrganizers.filter(o => o.branch === effectiveBranch);
+
+    const organizers = branchFilteredOrganizers.filter((o) => {
+      const tokenConfigured = Boolean(o.token);
+      if (!tokenConfigured) debug.push({ organizer: o.slug, ok: false, reason: 'missing_token' });
+      return tokenConfigured;
+    });
+
+    if (organizers.length === 0) {
+      return NextResponse.json({ error: 'Pretix API token is not configured for selected branch', debug }, { status: 500 });
+    }
 
     const allEvents: any[] = [];
     console.log(`Admin API: Fetching events for branch: ${effectiveBranch}`);
@@ -69,11 +89,13 @@ export async function GET(request: NextRequest) {
 
         const eventsData = await pretixFetch<{ results: any[] }>(url, { headers });
         console.log(`Admin API: Got ${eventsData.results.length} events for ${org.slug}`);
+        debug.push({ organizer: org.slug, ok: true, events: eventsData.results.length });
 
         const augmented = eventsData.results.map(e => ({ ...e, _token: org.token, _orgSlug: org.slug, _branch: org.branch }));
         allEvents.push(...augmented);
       } catch (err) {
         console.error(`Admin API: Error fetching events for ${org.slug}:`, err);
+        debug.push({ organizer: org.slug, ok: false, error: String(err) });
       }
     }
 
@@ -141,10 +163,10 @@ export async function GET(request: NextRequest) {
 
     eventsWithStats.sort((a: any, b: any) => new Date(b.date_from).getTime() - new Date(a.date_from).getTime());
 
-    return NextResponse.json({ results: eventsWithStats });
+    return NextResponse.json(debugMode ? { results: eventsWithStats, debug } : { results: eventsWithStats });
   } catch (error) {
     console.error('Admin events error:', error);
-    return NextResponse.json({ error: 'Failed to fetch events' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to fetch events', details: String(error) }, { status: 500 });
   }
 }
 
@@ -168,9 +190,11 @@ export async function POST(request: NextRequest) {
     // Determine branch and organizer from location
     const branch = (data.location === 'Kuwait') ? 'KWT' : 'KSA';
     const org = branch === 'KWT' ? 'yadawi' : 'yadawi-sa';
-    const token = branch === 'KWT'
-      ? process.env.PRETIX_API_TOKEN || '3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceirozhsz'
-      : process.env.PRETIX_SA_API_TOKEN || 'SA_3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceirozhsz';
+    const token = getOrganizerToken(org as 'yadawi' | 'yadawi-sa');
+
+    if (!token) {
+      return NextResponse.json({ error: 'Pretix API token is not configured for selected branch' }, { status: 500 });
+    }
 
     // Build the stringified description with metadata
     const parsedMeta = {

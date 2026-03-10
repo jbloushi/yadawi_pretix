@@ -3,9 +3,17 @@ import { getCache, setCache } from '@/lib/pretix-cache';
 
 const PRETIX_API_URL = process.env.NEXT_PUBLIC_PRETIX_URL || 'http://localhost:8000';
 
+const getOrganizerToken = (orgSlug: 'yadawi' | 'yadawi-sa') => {
+  if (orgSlug === 'yadawi-sa') {
+    return process.env.PRETIX_SA_API_TOKEN || process.env.NEXT_PUBLIC_PRETIX_SA_API_TOKEN || '';
+  }
+
+  return process.env.PRETIX_API_TOKEN || process.env.NEXT_PUBLIC_PRETIX_API_TOKEN || '';
+};
+
 const ORGANIZERS = [
-  { slug: 'yadawi', token: process.env.PRETIX_API_TOKEN || '3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceiro' },
-  { slug: 'yadawi-sa', token: process.env.PRETIX_SA_API_TOKEN || 'SA_3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceiro' },
+  { slug: 'yadawi', token: getOrganizerToken('yadawi') },
+  { slug: 'yadawi-sa', token: getOrganizerToken('yadawi-sa') },
 ];
 
 /** Safely convert any Pretix field to a plain string. Handles: string, {en:..., ar:...}, null, {} */
@@ -48,16 +56,32 @@ function normalizeEvent(event: any, orgSlug: string) {
   };
 }
 
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
+  const debugMode = request.nextUrl.searchParams.get('debug') === '1';
+  const debug: any[] = [];
+
   try {
     const cachedData = getCache('events');
     if (cachedData) {
       console.log('API: Returning cached events');
-      return NextResponse.json(cachedData);
+      return NextResponse.json(debugMode ? { ...cachedData, debug } : cachedData);
     }
 
     const allEvents: any[] = [];
     console.log(`API: Fetching events from ${PRETIX_API_URL}`);
+
+    const configuredOrganizers = ORGANIZERS.filter((org) => {
+      const tokenConfigured = Boolean(org.token);
+      if (!tokenConfigured) {
+        debug.push({ organizer: org.slug, ok: false, reason: 'missing_token' });
+      }
+      return tokenConfigured;
+    });
+
+    if (configuredOrganizers.length === 0) {
+      console.error('API: No Pretix API tokens configured. Set PRETIX_API_TOKEN/PRETIX_SA_API_TOKEN.');
+      return NextResponse.json({ error: 'Pretix API token is not configured', debug }, { status: 500 });
+    }
 
     // Determine the host from the URL to bypass 'Unknown host' (400) errors in Pretix
     const getPretixHeaders = (token: string) => {
@@ -77,19 +101,20 @@ export async function GET(_request: NextRequest) {
     };
 
     // Fetch events from all organizers in parallel
-    const orgPromises = ORGANIZERS.map(async (org) => {
+    const orgPromises = configuredOrganizers.map(async (org) => {
       try {
         const url = `${PRETIX_API_URL}/api/v1/organizers/${org.slug}/events/`;
         console.log(`API: Requesting events for ${org.slug} from ${url}`);
 
         const response = await fetch(url, {
           headers: getPretixHeaders(org.token),
-          next: { revalidate: 60 } // Cache for 60 seconds
+          next: { revalidate: 60 },
         });
 
         if (!response.ok) {
           const errorText = await response.text();
           console.error(`API: Failed fetch for ${org.slug}. Status: ${response.status}, Error: ${errorText.substring(0, 200)}`);
+          debug.push({ organizer: org.slug, ok: false, status: response.status, error: errorText.substring(0, 200) });
           return [];
         }
 
@@ -97,9 +122,8 @@ export async function GET(_request: NextRequest) {
         const events = data.results || [];
         console.log(`API: Found ${events.length} events for ${org.slug}`);
 
-        // For each event, fetch its items to get the minimum price in parallel
         const enrichedEvents = await Promise.all(events.map(async (e: any) => {
-          const normalized = normalizeEvent(e, org.slug); // Keep normalizeEvent for initial event data
+          const normalized = normalizeEvent(e, org.slug);
           let minPrice = undefined;
 
           try {
@@ -126,9 +150,11 @@ export async function GET(_request: NextRequest) {
           return { ...normalized, minPrice };
         }));
 
+        debug.push({ organizer: org.slug, ok: true, events: events.length });
         return enrichedEvents;
       } catch (error) {
         console.error(`API: Error fetching from ${org.slug}:`, error);
+        debug.push({ organizer: org.slug, ok: false, error: String(error) });
         return [];
       }
     });
@@ -138,7 +164,6 @@ export async function GET(_request: NextRequest) {
 
     console.log(`API: Total enriched events fetched: ${allEvents.length}`);
 
-    // Sort by date ascending
     allEvents.sort((a, b) => {
       const dateA = a.date_from ? new Date(a.date_from).getTime() : 0;
       const dateB = b.date_from ? new Date(b.date_from).getTime() : 0;
@@ -147,12 +172,11 @@ export async function GET(_request: NextRequest) {
 
     const finalData = { count: allEvents.length, next: null, previous: null, results: allEvents };
 
-    // Update cache
     setCache('events', finalData);
 
-    return NextResponse.json(finalData);
+    return NextResponse.json(debugMode ? { ...finalData, debug } : finalData);
   } catch (error) {
     console.error('API: Critical error in GET events:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error', debug }, { status: 500 });
   }
 }

@@ -1,7 +1,7 @@
 import { PretixEvent, PretixItem, PretixOrder } from '@/types/pretix';
 
 const PRETIX_API_URL = process.env.NEXT_PUBLIC_PRETIX_URL || 'http://localhost:8000';
-const PRETIX_API_TOKEN = process.env.PRETIX_API_TOKEN || '3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceirozhsz';
+const PRETIX_API_TOKEN = process.env.PRETIX_API_TOKEN || process.env.NEXT_PUBLIC_PRETIX_API_TOKEN || '';
 
 export async function pretixFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const headers: HeadersInit = {

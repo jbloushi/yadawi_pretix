@@ -66,7 +66,7 @@ export default function WorkshopsPage() {
         // For ALL-users, pass the manual branch filter
         if (userBranch === 'ALL' && branchFilter !== 'ALL') params.set('branch', branchFilter);
 
-        const res = await fetch(`/api/admin/events?${params.toString()}`, {
+        const res = await fetch(`/api/admin/events?${params.toString()}${params.toString() ? '&' : ''}debug=1`, {
           credentials: 'include',
           headers: {
             'x-user-role': userRole,
