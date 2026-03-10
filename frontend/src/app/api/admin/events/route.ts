@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { pretixFetch } from '@/lib/pretix';
 
+const getOrganizerToken = (orgSlug: 'yadawi' | 'yadawi-sa') => {
+  if (orgSlug === 'yadawi-sa') {
+    return process.env.PRETIX_SA_API_TOKEN || process.env.NEXT_PUBLIC_PRETIX_SA_API_TOKEN || '';
+  }
+
+  return process.env.PRETIX_API_TOKEN || process.env.NEXT_PUBLIC_PRETIX_API_TOKEN || '';
+};
+
 /** Safely resolve a Pretix multilingual field to a plain string */
 function toStr(val: any, fallback = ''): string {
   if (!val) return fallback;
@@ -51,12 +59,18 @@ export async function GET(request: NextRequest) {
 
     // All organizers, then restricted by branch
     const allOrganizers = [
-      { slug: 'yadawi', token: process.env.PRETIX_API_TOKEN || '3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceirozhsz', branch: 'KWT' },
-      { slug: 'yadawi-sa', token: process.env.PRETIX_SA_API_TOKEN || 'SA_3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceirozhsz', branch: 'KSA' },
+      { slug: 'yadawi', token: getOrganizerToken('yadawi'), branch: 'KWT' },
+      { slug: 'yadawi-sa', token: getOrganizerToken('yadawi-sa'), branch: 'KSA' },
     ];
-    const organizers = effectiveBranch === 'ALL'
+    const branchFilteredOrganizers = effectiveBranch === 'ALL'
       ? allOrganizers
       : allOrganizers.filter(o => o.branch === effectiveBranch);
+
+    const organizers = branchFilteredOrganizers.filter((o) => o.token);
+
+    if (organizers.length === 0) {
+      return NextResponse.json({ error: 'Pretix API token is not configured for selected branch' }, { status: 500 });
+    }
 
     const allEvents: any[] = [];
     console.log(`Admin API: Fetching events for branch: ${effectiveBranch}`);
@@ -168,9 +182,11 @@ export async function POST(request: NextRequest) {
     // Determine branch and organizer from location
     const branch = (data.location === 'Kuwait') ? 'KWT' : 'KSA';
     const org = branch === 'KWT' ? 'yadawi' : 'yadawi-sa';
-    const token = branch === 'KWT'
-      ? process.env.PRETIX_API_TOKEN || '3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceirozhsz'
-      : process.env.PRETIX_SA_API_TOKEN || 'SA_3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceirozhsz';
+    const token = getOrganizerToken(org as 'yadawi' | 'yadawi-sa');
+
+    if (!token) {
+      return NextResponse.json({ error: 'Pretix API token is not configured for selected branch' }, { status: 500 });
+    }
 
     // Build the stringified description with metadata
     const parsedMeta = {
