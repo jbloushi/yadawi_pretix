@@ -76,21 +76,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Pretix API token is not configured' }, { status: 500 });
     }
 
-    // Determine the host from the URL to bypass 'Unknown host' (400) errors in Pretix
     const getPretixHeaders = (token: string) => {
-      const headers: Record<string, string> = {
+      return {
         'Authorization': `Token ${token}`,
         'Content-Type': 'application/json',
       };
-
-      try {
-        const urlObj = new URL(PRETIX_API_URL);
-        headers['Host'] = urlObj.host;
-      } catch (e) {
-        // Fallback if URL is invalid
-      }
-
-      return headers;
     };
 
     // Fetch events from all organizers in parallel
