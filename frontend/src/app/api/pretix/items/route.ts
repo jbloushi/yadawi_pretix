@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCache, setCache } from '@/lib/pretix-cache';
 
-const PRETIX_API_URL = process.env.NEXT_PUBLIC_PRETIX_URL || 'http://localhost:8000';
-const PRETIX_API_TOKEN = process.env.PRETIX_API_TOKEN || '3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceiro';
+const PRETIX_API_URL = 'https://pretix.mawthook.io';
+const VERIFIED_TOKEN = '3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceirozhsz';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -14,9 +14,9 @@ export async function GET(request: NextRequest) {
   }
 
   const token =
-    org === 'yadawi-sa'
-      ? process.env.PRETIX_SA_API_TOKEN || 'SA_3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceiro'
-      : process.env.PRETIX_API_TOKEN || '3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceiro';
+    (org === 'yadawi-sa'
+      ? process.env.PRETIX_SA_API_TOKEN
+      : process.env.PRETIX_API_TOKEN) || VERIFIED_TOKEN;
 
   const cacheKey = `items-${org}-${slug}`;
   const cachedData = getCache(cacheKey);

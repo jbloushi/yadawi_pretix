@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCache, setCache } from '@/lib/pretix-cache';
 
-const PRETIX_API_URL = process.env.NEXT_PUBLIC_PRETIX_URL || 'http://localhost:8000';
+const PRETIX_API_URL = 'https://pretix.mawthook.io';
 
-// Hardcoded fallbacks verified directly from the VPS database
+// Verified tokens from VPS database - both organizers use the same long token
 const FALLBACK_TOKENS = {
   'yadawi': '3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceirozhsz',
   'yadawi-sa': '3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceirozhsz'
@@ -88,19 +88,10 @@ export async function GET(request: NextRequest) {
     }
 
     const getPretixHeaders = (token: string) => {
-      const headers: Record<string, string> = {
+      return {
         'Authorization': `Token ${token}`,
         'Content-Type': 'application/json',
       };
-      
-      // CRITICAL: Pretix/Django requires 'Host' to match its configuration (pretix.mawthook.io)
-      if (PRETIX_API_URL.includes('localhost') || PRETIX_API_URL.includes('127.0.0.1')) {
-        headers['Host'] = 'pretix.mawthook.io';
-        headers['X-Forwarded-Host'] = 'pretix.mawthook.io';
-        headers['X-Forwarded-Proto'] = 'https';
-      }
-      
-      return headers;
     };
 
     // Fetch events from all organizers in parallel

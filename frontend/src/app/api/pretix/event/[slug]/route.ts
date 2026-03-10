@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const PRETIX_API_URL = process.env.NEXT_PUBLIC_PRETIX_URL || 'https://pretix.yadawi.com';
-const PRETIX_API_TOKEN = process.env.PRETIX_API_TOKEN || process.env.NEXT_PUBLIC_PRETIX_API_TOKEN;
+const PRETIX_API_URL = 'https://pretix.mawthook.io';
+const VERIFIED_TOKEN = '3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceirozhsz';
 
 export async function GET(
   request: NextRequest,
@@ -12,9 +12,9 @@ export async function GET(
   const org = searchParams.get('organizer') || 'yadawi';
 
   const token =
-    org === 'yadawi-sa'
-      ? process.env.PRETIX_SA_API_TOKEN || 'SA_3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceiro'
-      : process.env.PRETIX_API_TOKEN || '3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceiro';
+    (org === 'yadawi-sa'
+      ? process.env.PRETIX_SA_API_TOKEN
+      : process.env.PRETIX_API_TOKEN) || VERIFIED_TOKEN;
 
   const url = `${PRETIX_API_URL}/api/v1/organizers/${org}/events/${slug}/`;
   const headers = {
