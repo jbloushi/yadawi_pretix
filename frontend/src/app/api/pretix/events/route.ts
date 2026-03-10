@@ -3,10 +3,10 @@ import { getCache, setCache } from '@/lib/pretix-cache';
 
 const PRETIX_API_URL = process.env.NEXT_PUBLIC_PRETIX_URL || 'http://localhost:8000';
 
-// Hardcoded fallbacks to ensure build works even if .env is missing on VPS
+// Hardcoded fallbacks verified directly from the VPS database
 const FALLBACK_TOKENS = {
-  'yadawi': '3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceiro',
-  'yadawi-sa': 'SA_3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceiro'
+  'yadawi': '3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceirozhsz',
+  'yadawi-sa': '3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceirozhsz'
 };
 
 const getOrganizerToken = (orgSlug: 'yadawi' | 'yadawi-sa') => {
@@ -17,8 +17,8 @@ const getOrganizerToken = (orgSlug: 'yadawi' | 'yadawi-sa') => {
     token = process.env.PRETIX_API_TOKEN || process.env.NEXT_PUBLIC_PRETIX_API_TOKEN || '';
   }
   
-  // Use fallback if env is empty
-  return token || FALLBACK_TOKENS[orgSlug];
+  // Use fallback if env is empty or too short (invalid)
+  return (token && token.length >= 64) ? token : FALLBACK_TOKENS[orgSlug];
 };
 
 const ORGANIZERS = [
@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const cachedData = getCache('events');
-    if (cachedData && !debugMode) { // Skip cache for debug requests
+    if (cachedData && !debugMode) {
       console.log('API: Returning cached events');
       return NextResponse.json(cachedData);
     }
@@ -87,10 +87,18 @@ export async function GET(request: NextRequest) {
     }
 
     const getPretixHeaders = (token: string) => {
-      return {
+      const headers: Record<string, string> = {
         'Authorization': `Token ${token}`,
         'Content-Type': 'application/json',
       };
+      
+      // CRITICAL: Pretix/Django requires 'Host' to match its configuration (pretix.mawthook.io)
+      // When calling 'localhost:8000' from the same machine, we MUST override this to prevent 500/DisallowedHost
+      if (PRETIX_API_URL.includes('localhost') || PRETIX_API_URL.includes('127.0.0.1')) {
+        headers['Host'] = 'pretix.mawthook.io';
+      }
+      
+      return headers;
     };
 
     // Fetch events from all organizers in parallel
@@ -113,9 +121,9 @@ export async function GET(request: NextRequest) {
             organizer: org.slug, 
             ok: false, 
             status: response.status, 
-            error: errorText.substring(0, 500), // Increased for 500 errors
+            error: errorText.substring(0, 500),
             url: url,
-            token_prefix: org.token.substring(0, 5) + '...' 
+            headers_sent: { ...headers, Authorization: 'Token [HIDDEN]' }
           });
           return [];
         }
