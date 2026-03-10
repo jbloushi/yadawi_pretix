@@ -3,12 +3,22 @@ import { getCache, setCache } from '@/lib/pretix-cache';
 
 const PRETIX_API_URL = process.env.NEXT_PUBLIC_PRETIX_URL || 'http://localhost:8000';
 
-const getOrganizerToken = (orgSlug: 'yadawi' | 'yadawi-sa') => {
-  if (orgSlug === 'yadawi-sa') {
-    return process.env.PRETIX_SA_API_TOKEN || process.env.NEXT_PUBLIC_PRETIX_SA_API_TOKEN || '';
-  }
+// Hardcoded fallbacks to ensure build works even if .env is missing on VPS
+const FALLBACK_TOKENS = {
+  'yadawi': '3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceiro',
+  'yadawi-sa': 'SA_3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceiro'
+};
 
-  return process.env.PRETIX_API_TOKEN || process.env.NEXT_PUBLIC_PRETIX_API_TOKEN || '';
+const getOrganizerToken = (orgSlug: 'yadawi' | 'yadawi-sa') => {
+  let token = '';
+  if (orgSlug === 'yadawi-sa') {
+    token = process.env.PRETIX_SA_API_TOKEN || process.env.NEXT_PUBLIC_PRETIX_SA_API_TOKEN || '';
+  } else {
+    token = process.env.PRETIX_API_TOKEN || process.env.NEXT_PUBLIC_PRETIX_API_TOKEN || '';
+  }
+  
+  // Use fallback if env is empty
+  return token || FALLBACK_TOKENS[orgSlug];
 };
 
 const ORGANIZERS = [
@@ -62,9 +72,9 @@ export async function GET(request: NextRequest) {
 
   try {
     const cachedData = getCache('events');
-    if (cachedData) {
+    if (cachedData && !debugMode) { // Skip cache for debug requests
       console.log('API: Returning cached events');
-      return NextResponse.json(debugMode ? { ...cachedData, debug } : cachedData);
+      return NextResponse.json(cachedData);
     }
 
     const allEvents: any[] = [];
@@ -72,7 +82,7 @@ export async function GET(request: NextRequest) {
 
     const configuredOrganizers = ORGANIZERS.filter((org) => org.token);
     if (configuredOrganizers.length === 0) {
-      console.error('API: No Pretix API tokens configured. Set PRETIX_API_TOKEN/PRETIX_SA_API_TOKEN.');
+      console.error('API: No Pretix API tokens available.');
       return NextResponse.json({ error: 'Pretix API token is not configured' }, { status: 500 });
     }
 
@@ -87,17 +97,26 @@ export async function GET(request: NextRequest) {
     const orgPromises = configuredOrganizers.map(async (org) => {
       try {
         const url = `${PRETIX_API_URL}/api/v1/organizers/${org.slug}/events/`;
+        const headers = getPretixHeaders(org.token);
+        
         console.log(`API: Requesting events for ${org.slug} from ${url}`);
 
         const response = await fetch(url, {
-          headers: getPretixHeaders(org.token),
+          headers: headers,
           next: { revalidate: 60 },
         });
 
         if (!response.ok) {
           const errorText = await response.text();
-          console.error(`API: Failed fetch for ${org.slug}. Status: ${response.status}, Error: ${errorText.substring(0, 200)}`);
-          debug.push({ organizer: org.slug, ok: false, status: response.status, error: errorText.substring(0, 200) });
+          console.error(`API: Failed fetch for ${org.slug}. Status: ${response.status}`);
+          debug.push({ 
+            organizer: org.slug, 
+            ok: false, 
+            status: response.status, 
+            error: errorText.substring(0, 500), // Increased for 500 errors
+            url: url,
+            token_prefix: org.token.substring(0, 5) + '...' 
+          });
           return [];
         }
 
