@@ -68,14 +68,10 @@ export async function GET(request: NextRequest) {
       ? allOrganizers
       : allOrganizers.filter(o => o.branch === effectiveBranch);
 
-    const organizers = branchFilteredOrganizers.filter((o) => {
-      const tokenConfigured = Boolean(o.token);
-      if (!tokenConfigured) debug.push({ organizer: o.slug, ok: false, reason: 'missing_token' });
-      return tokenConfigured;
-    });
+    const organizers = branchFilteredOrganizers.filter((o) => o.token);
 
     if (organizers.length === 0) {
-      return NextResponse.json({ error: 'Pretix API token is not configured for selected branch', debug }, { status: 500 });
+      return NextResponse.json({ error: 'Pretix API token is not configured for selected branch' }, { status: 500 });
     }
 
     const allEvents: any[] = [];

@@ -70,17 +70,10 @@ export async function GET(request: NextRequest) {
     const allEvents: any[] = [];
     console.log(`API: Fetching events from ${PRETIX_API_URL}`);
 
-    const configuredOrganizers = ORGANIZERS.filter((org) => {
-      const tokenConfigured = Boolean(org.token);
-      if (!tokenConfigured) {
-        debug.push({ organizer: org.slug, ok: false, reason: 'missing_token' });
-      }
-      return tokenConfigured;
-    });
-
+    const configuredOrganizers = ORGANIZERS.filter((org) => org.token);
     if (configuredOrganizers.length === 0) {
       console.error('API: No Pretix API tokens configured. Set PRETIX_API_TOKEN/PRETIX_SA_API_TOKEN.');
-      return NextResponse.json({ error: 'Pretix API token is not configured', debug }, { status: 500 });
+      return NextResponse.json({ error: 'Pretix API token is not configured' }, { status: 500 });
     }
 
     // Determine the host from the URL to bypass 'Unknown host' (400) errors in Pretix
