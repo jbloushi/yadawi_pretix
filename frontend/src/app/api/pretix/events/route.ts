@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCache, setCache } from '@/lib/pretix-cache';
 
-// STATIC VERIFIED TOKEN - Both organizers use this long 64-char token
-const VERIFIED_TOKEN = '3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceirozhsz';
+// STATIC VERIFIED TOKENS - Unique prefixes to avoid database duplication crash
+const KW_TOKEN = 'KW_3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceiro';
+const SA_TOKEN = 'SA_3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceiro';
 const PRETIX_API_URL = 'https://pretix.mawthook.io';
 
 const ORGANIZERS = [
-  { slug: 'yadawi', token: VERIFIED_TOKEN },
-  { slug: 'yadawi-sa', token: VERIFIED_TOKEN },
+  { slug: 'yadawi', token: KW_TOKEN },
+  { slug: 'yadawi-sa', token: SA_TOKEN },
 ];
 
 /** Safely convert any Pretix field to a plain string. Handles: string, {en:..., ar:...}, null, {} */

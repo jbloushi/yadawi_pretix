@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// STATIC VERIFIED TOKEN - Both organizers use this long 64-char token
-const VERIFIED_TOKEN = '3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceirozhsz';
+// STATIC VERIFIED TOKENS - Unique prefixes to avoid database duplication crash
+const KW_TOKEN = 'KW_3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceiro';
+const SA_TOKEN = 'SA_3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceiro';
 const PRETIX_API_URL = 'https://pretix.mawthook.io';
 
 export async function GET(
@@ -14,7 +15,7 @@ export async function GET(
 
   const url = `${PRETIX_API_URL}/api/v1/organizers/${org}/events/${slug}/`;
   const headers = {
-    'Authorization': `Token ${VERIFIED_TOKEN}`,
+    'Authorization': `Token ${org === 'yadawi-sa' ? SA_TOKEN : KW_TOKEN}`,
     'Content-Type': 'application/json',
   };
 

@@ -114,12 +114,9 @@ def seed():
                     team.all_events = True
                     team.save()
 
-                # Shorten base token to fit within 64 chars even with SA_ prefix
-                # Original was 64 chars, making SA_ 67 chars. 
-                # New base is 60 chars.
-                token_val = '3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceiro'
-                if org_slug == 'yadawi-sa':
-                    token_val = 'SA_' + token_val
+                # Base token (60 chars)
+                base_token = '3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceiro'
+                token_val = ('KW_' if org_slug == 'yadawi' else 'SA_') + base_token
 
                 token_obj, t_created = TeamAPIToken.objects.get_or_create(
                     team=team,
@@ -132,6 +129,10 @@ def seed():
                 if t_created:
                     print(f"Created API token for {org_slug}: {token_val}")
                 else:
+                    # Explicitly update token if it doesn't match (for re-runs)
+                    if token_obj.token != token_val:
+                        token_obj.token = token_val
+                        token_obj.save()
                     print(f"Verified API token for {org_slug}: {token_val}")
 
                 # 3. Create Sample Events
