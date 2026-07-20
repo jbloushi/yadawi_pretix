@@ -154,3 +154,22 @@ runConfigurations/
 .DS_Store
 Thumbs.db
 nul
+
+# --- Secrets: never commit. Rotate immediately if one lands here. ---
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+pretix-data/
+*.secret
+
+# --- Server-owned files (aaPanel / Nginx / Let's Encrypt) ---
+.htaccess
+.user.ini
+**/.well-known/
+.deploy-port
+
+# --- Use one lockfile (package-lock.json) ---
+yarn.lock
