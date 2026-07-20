@@ -2,19 +2,8 @@
 
 import { useState } from 'react';
 import { Download, Calendar, TrendingUp, DollarSign, Users, Ticket } from 'lucide-react';
+import { COLORS } from '@/lib/theme';
 
-const COLORS = {
-  terracotta: '#C8622A',
-  terracottaLight: 'rgba(200, 98, 42, 0.1)',
-  bark: '#3D2B1A',
-  sand: '#F2EAD8',
-  cream: '#FAF6F0',
-  smoke: '#8B7B6E',
-  success: '#22C55E',
-  successLight: 'rgba(34, 197, 94, 0.1)',
-  info: '#3B82F6',
-  infoLight: 'rgba(59, 130, 246, 0.1)',
-};
 
 const salesData = [
   { date: 'Mar 1', revenue: 2400, orders: 12 },

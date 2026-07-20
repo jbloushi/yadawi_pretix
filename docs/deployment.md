@@ -81,8 +81,9 @@ nano .env.local
 ```
 
 ```env
-NEXT_PUBLIC_PRETIX_URL=https://pretix.yadawi.com
-PRETIX_API_TOKEN=your_api_token
+PRETIX_BASE_URL=https://pretix.yadawi.com
+PRETIX_API_TOKEN=your_kuwait_api_token
+PRETIX_SA_API_TOKEN=your_saudi_api_token
 PRETIX_WEBHOOK_SECRET=your_webhook_secret
 CHATWOOT_WEBHOOK_URL=
 ```
@@ -157,6 +158,19 @@ For each workshop:
 - [ ] Webhooks received (check logs)
 
 ### Common Issues
+
+#### Regional catalog reports that workshops are unavailable
+
+Confirm `PRETIX_BASE_URL` is reachable from the Next.js host and that both regional tokens are valid for their organizer. Check the upstream proxy separately; the frontend intentionally returns a generic customer-safe error instead of the Pretix response body.
+
+```bash
+curl -I "$PRETIX_BASE_URL/api/v1/organizers/yadawi/events/"
+pm2 logs yadawi-frontend --lines 100
+```
+
+### Migration notes for the regional-cart release
+
+No database migration is required. Existing `yadawi-cart` browser data is not imported because its market ownership cannot be proven safely. New carts use `yadawi-cart:KWT` and `yadawi-cart:KSA`. Customers with an old local cart may need to add its items again.
 
 #### pretix not starting
 ```bash

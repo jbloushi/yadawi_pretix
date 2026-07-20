@@ -3,20 +3,8 @@
 import { useState, useEffect } from 'react';
 import { QrCode, Search, Check, X, Users, Camera, Loader2 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
+import { COLORS } from '@/lib/theme';
 
-const COLORS = {
-  terracotta: '#C8622A',
-  terracottaLight: 'rgba(200, 98, 42, 0.1)',
-  bark: '#3D2B1A',
-  sand: '#F2EAD8',
-  cream: '#FAF6F0',
-  smoke: '#8B7B6E',
-  success: '#22C55E',
-  successLight: 'rgba(34, 197, 94, 0.1)',
-  danger: '#EF4444',
-  dangerLight: 'rgba(239, 68, 68, 0.1)',
-  info: '#3B82F6',
-};
 
 interface EventOption {
   slug: string;

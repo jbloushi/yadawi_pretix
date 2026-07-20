@@ -1,10 +1,10 @@
 export interface PretixEvent {
   id: number;
   slug: string;
-  name: Record<string, string>;
-  description: string;
-  date_from: string;
-  date_to: string;
+  name: Record<string, string> | string;
+  description: Record<string, string> | string;
+  date_from: string | null;
+  date_to: string | null;
   location: string | null;
   organizer: string;
   currency: string;
@@ -25,6 +25,13 @@ export interface PretixEvent {
   testmode: boolean;
   public_url: string;
   coverImage?: string;
+  minPrice?: number;
+  category?: string;
+  skillLevel?: string;
+  ageGroup?: string;
+  language?: string;
+  duration?: string;
+  instructor?: string;
 }
 
 export interface PretixItem {

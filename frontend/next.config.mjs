@@ -8,15 +8,9 @@ const nextConfig = {
       },
     ],
   },
-  async rewrites() {
-    const pretixUrl = process.env.NEXT_PUBLIC_PRETIX_URL || 'https://pretix.yadawi.com';
-    return [
-      {
-        source: '/api/pretix/:path*',
-        destination: `${pretixUrl}/api/v1/:path*`,
-      },
-    ];
-  },
+  // NOTE: removed the '/api/pretix/:path*' → Pretix rewrite. It shadowed the
+  // route handlers under app/api/pretix/* (which add the organizer path + auth
+  // token) and proxied to Pretix without auth, 404-ing every call.
 };
 
 export default nextConfig;

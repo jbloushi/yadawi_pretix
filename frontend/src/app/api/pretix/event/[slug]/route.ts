@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// STATIC VERIFIED TOKENS - Unique prefixes to avoid database duplication crash
-const KW_TOKEN = 'KW_3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceiro';
-const SA_TOKEN = 'SA_3ll9f5237hcv96ioakrebef35qvl7qvuurfp3ih46oldfc5i9abmrkdceiro';
-const PRETIX_API_URL = 'https://pretix.mawthook.io';
+// Tokens come from env so they can be rotated without code changes.
+// KW = organizer "yadawi", SA = organizer "yadawi-sa".
+const PRETIX_API_URL = process.env.NEXT_PUBLIC_PRETIX_URL || 'https://pretix.mawthook.io';
 
 export async function GET(
   request: NextRequest,
@@ -13,9 +12,14 @@ export async function GET(
   const { searchParams } = new URL(request.url);
   const org = searchParams.get('organizer') || 'yadawi';
 
+  const token =
+    org === 'yadawi-sa'
+      ? process.env.PRETIX_SA_API_TOKEN || ''
+      : process.env.PRETIX_API_TOKEN || '';
+
   const url = `${PRETIX_API_URL}/api/v1/organizers/${org}/events/${slug}/`;
   const headers = {
-    'Authorization': `Token ${org === 'yadawi-sa' ? SA_TOKEN : KW_TOKEN}`,
+    'Authorization': `Token ${token}`,
     'Content-Type': 'application/json',
   };
 

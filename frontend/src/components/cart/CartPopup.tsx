@@ -33,6 +33,16 @@ export function CartPopup() {
     return () => window.removeEventListener('addToCart', handleAddToCart);
   }, []);
 
+  // Every dismissible overlay needs a keyboard escape route, not just a tap target.
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsOpen(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isOpen]);
+
   if (items.length === 0) return null;
 
   return (
@@ -48,6 +58,7 @@ export function CartPopup() {
         }}>
           <div
             onClick={() => setIsOpen(false)}
+            aria-hidden="true"
             style={{
               position: 'absolute',
               inset: 0,
@@ -55,15 +66,19 @@ export function CartPopup() {
               backdropFilter: 'blur(4px)',
             }}
           />
-          <div style={{
-            position: 'relative',
-            background: '#FAF6F0',
-            borderRadius: '28px 28px 0 0',
-            width: '100%',
-            maxWidth: 400,
-            maxHeight: '85%',
-            overflow: 'hidden',
-          }}>
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cart-popup-title"
+            style={{
+              position: 'relative',
+              background: '#FAF6F0',
+              borderRadius: '28px 28px 0 0',
+              width: '100%',
+              maxWidth: 400,
+              maxHeight: '85%',
+              overflow: 'hidden',
+            }}>
             {/* Handle */}
             <div style={{
               width: 40,
@@ -77,16 +92,18 @@ export function CartPopup() {
             <div style={{ padding: '0 20px 16px', borderBottom: '1px solid rgba(61,43,26,0.08)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <ShoppingCart size={24} color="#C8622A" />
-                  <h2 style={{ fontWeight: 700, fontSize: 18, color: '#3D2B1A' }}>
+                  <ShoppingCart size={24} color="#C8622A" aria-hidden="true" />
+                  <h2 id="cart-popup-title" style={{ fontWeight: 700, fontSize: 18, color: '#3D2B1A' }}>
                     {itemCount} {itemCount === 1 ? 'item' : 'items'} added
                   </h2>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setIsOpen(false)}
+                  aria-label="Close cart summary"
                   style={{
-                    width: 32,
-                    height: 32,
+                    width: 44,
+                    height: 44,
                     borderRadius: '50%',
                     background: '#F2EAD8',
                     border: 'none',
@@ -94,9 +111,10 @@ export function CartPopup() {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
+                    flexShrink: 0,
                   }}
                 >
-                  <X size={18} color="#8B7B6E" />
+                  <X size={18} color="#6F6154" aria-hidden="true" />
                 </button>
               </div>
             </div>

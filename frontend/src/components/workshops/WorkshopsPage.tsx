@@ -1,167 +1,126 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { CalendarDays, MapPin, Search, SlidersHorizontal, Sparkles } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
 import { useBranch } from '@/lib/branch';
-import { Calendar, MapPin, Heart, Search, Loader2 } from 'lucide-react';
-import { formatDate, getLocalizedName } from '@/lib/utils';
+import { formatCurrency, formatDate, getLocalizedName } from '@/lib/utils';
+import { track } from '@/lib/analytics';
 import type { PretixEvent } from '@/types/pretix';
 
-const filterChips = [
-  { key: 'all', label: 'All', labelAr: 'الكل' },
-  { key: 'upcoming', label: 'Upcoming', labelAr: 'القادمة' },
-  { key: 'beginner', label: 'Beginner', labelAr: 'مبتدئ' },
-  { key: 'filters', label: 'Filters', labelAr: 'تصفية' },
-];
+type DateFilter = 'all' | 'week' | 'weekend';
 
 export function WorkshopsPage() {
-  const { t, locale } = useTranslation();
+  const { locale } = useTranslation();
   const { branch } = useBranch();
-  const [activeFilter, setActiveFilter] = useState('all');
   const [events, setEvents] = useState<PretixEvent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(false);
+  const [query, setQuery] = useState('');
+  const [dateFilter, setDateFilter] = useState<DateFilter>('all');
+  const [category, setCategory] = useState('');
+  const [location, setLocation] = useState('');
+  const [sort, setSort] = useState('soonest');
+  const isArabic = locale === 'ar';
 
   useEffect(() => {
-    async function fetchEvents() {
-      try {
-        const res = await fetch('/api/pretix/events?debug=1');
-        const data = await res.json();
-        if (!res.ok) {
-          console.error('Workshops API debug payload:', data);
-          throw new Error(data.error || 'Failed to fetch');
-        }
-        setEvents(data.results || []);
-      } catch (err) {
-        console.error('Error fetching events:', err);
-        setError('Failed to load workshops');
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchEvents();
+    const params = new URLSearchParams(window.location.search);
+    setQuery(params.get('q') || '');
+    setCategory(params.get('category') || '');
   }, []);
 
-  /** Filter by the global branch selection */
-  const filteredEvents = events.filter((e) => {
-    if (branch === 'KWT') return e.organizer === 'yadawi';
-    return e.organizer === 'yadawi-sa';
-  });
+  useEffect(() => {
+    const controller = new AbortController();
+    setLoading(true);
+    setError(false);
+    fetch(`/api/pretix/events?market=${branch}`, { signal: controller.signal })
+      .then(async response => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error);
+        setEvents(data.results || []);
+        track('workshop_list_viewed', { market: branch });
+      })
+      .catch(error => { if (error.name !== 'AbortError') setError(true); })
+      .finally(() => setLoading(false));
+    return () => controller.abort();
+  }, [branch]);
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (query) params.set('q', query);
+    if (category) params.set('category', category);
+    if (location) params.set('location', location);
+    if (dateFilter !== 'all') params.set('date', dateFilter);
+    window.history.replaceState(null, '', `${window.location.pathname}${params.size ? `?${params}` : ''}`);
+  }, [query, category, location, dateFilter]);
+
+  const categories = useMemo(() => Array.from(new Set(events.map(event => event.category).filter(Boolean))) as string[], [events]);
+  const locations = useMemo(() => Array.from(new Set(events.map(event => event.location).filter(Boolean))) as string[], [events]);
+  const visibleEvents = useMemo(() => {
+    const now = new Date();
+    const endOfWeek = new Date(now); endOfWeek.setDate(now.getDate() + 7);
+    const lowerQuery = query.trim().toLocaleLowerCase(locale);
+    return events.filter(event => {
+      const name = getLocalizedName(event.name, locale).toLocaleLowerCase(locale);
+      const description = typeof event.description === 'string' ? event.description : getLocalizedName(event.description, locale);
+      if (lowerQuery && !`${name} ${description} ${event.location || ''} ${event.instructor || ''}`.toLocaleLowerCase(locale).includes(lowerQuery)) return false;
+      if (category && event.category !== category) return false;
+      if (location && event.location !== location) return false;
+      if (dateFilter !== 'all' && event.date_from) {
+        const date = new Date(event.date_from);
+        if (dateFilter === 'week' && date > endOfWeek) return false;
+        if (dateFilter === 'weekend' && ![5, 6].includes(date.getDay())) return false;
+      }
+      return true;
+    }).sort((a, b) => {
+      if (sort === 'price') return (a.minPrice ?? Number.MAX_VALUE) - (b.minPrice ?? Number.MAX_VALUE);
+      return new Date(a.date_from || 0).getTime() - new Date(b.date_from || 0).getTime();
+    });
+  }, [events, query, category, location, dateFilter, sort, locale]);
+
+  const updateFilter = (kind: string, value: string) => {
+    track(kind === 'search' ? 'workshop_searched' : 'workshop_filter_applied', { market: branch, category: kind, filter_value: value });
+  };
 
   return (
-    <div>
-      {/* List Header */}
-      <div className="bg-white px-3.5 py-3 border-b border-line">
-        <div className="flex items-center justify-between mb-3">
-          <h1 className="text-lg font-extrabold text-secondary-900">
-            {t('workshops.title')}
-          </h1>
-          <div className="flex gap-2.5">
-            <button className="w-8 h-8 flex items-center justify-center rounded-full border border-line bg-white">
-              <Heart size={14} className="text-secondary-600" />
-            </button>
-            <button className="w-8 h-8 flex items-center justify-center rounded-full border border-line bg-white">
-              <Search size={14} className="text-secondary-600" />
-            </button>
-          </div>
-        </div>
+    <main className="catalog-page">
+      <header className="catalog-heading">
+        <span className="eyebrow">{branch === 'KWT' ? (isArabic ? 'الكويت' : 'Kuwait') : (isArabic ? 'السعودية' : 'Saudi Arabia')}</span>
+        <h1>{isArabic ? 'اختر تجربتك القادمة' : 'Choose your next creative experience'}</h1>
+        <p>{isArabic ? 'قارن المواعيد والمواقع والأسعار قبل الحجز.' : 'Compare dates, locations and prices without opening every workshop.'}</p>
+      </header>
 
-        {/* Filter Chips */}
-        <div className="flex gap-2 flex-wrap">
-          {filterChips.map((chip) => (
-            <button
-              key={chip.key}
-              onClick={() => setActiveFilter(chip.key)}
-              className={`chip ${activeFilter === chip.key ? 'chip-active' : ''}`}
-            >
-              {locale === 'ar' ? chip.labelAr : chip.label}
-            </button>
-          ))}
+      <section className="catalog-controls" aria-label={isArabic ? 'تصفية الورش' : 'Workshop filters'}>
+        <label className="catalog-search"><Search size={18} /><span className="sr-only">{isArabic ? 'بحث' : 'Search'}</span><input type="search" value={query} onChange={event => setQuery(event.target.value)} onBlur={() => updateFilter('search', query)} placeholder={isArabic ? 'ابحث عن حرفة أو مدرب أو فرع' : 'Search craft, instructor or branch'} /></label>
+        <div className="filter-row">
+          <SlidersHorizontal size={18} aria-hidden="true" />
+          <select value={category} aria-label={isArabic ? 'الحرفة' : 'Craft'} onChange={event => { setCategory(event.target.value); updateFilter('category', event.target.value); }}><option value="">{isArabic ? 'كل الحرف' : 'All crafts'}</option>{categories.map(value => <option key={value}>{value}</option>)}</select>
+          <select value={location} aria-label={isArabic ? 'الفرع' : 'Location'} onChange={event => { setLocation(event.target.value); updateFilter('location', event.target.value); }}><option value="">{isArabic ? 'كل الفروع' : 'All locations'}</option>{locations.map(value => <option key={value}>{value}</option>)}</select>
+          <select value={sort} aria-label={isArabic ? 'الترتيب' : 'Sort'} onChange={event => setSort(event.target.value)}><option value="soonest">{isArabic ? 'الأقرب موعداً' : 'Soonest first'}</option><option value="price">{isArabic ? 'السعر الأقل' : 'Lowest price'}</option></select>
         </div>
-      </div>
+        <div className="date-chips" aria-label={isArabic ? 'التاريخ' : 'Date'}>{(['all','week','weekend'] as DateFilter[]).map(value => <button key={value} type="button" aria-pressed={dateFilter === value} onClick={() => { setDateFilter(value); updateFilter('date', value); }}>{value === 'all' ? (isArabic ? 'كل المواعيد' : 'All dates') : value === 'week' ? (isArabic ? 'هذا الأسبوع' : 'This week') : (isArabic ? 'نهاية الأسبوع' : 'This weekend')}</button>)}</div>
+      </section>
 
-      {/* Workshop List */}
-      <div className="p-3.5 flex flex-col gap-3">
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 text-primary animate-spin" />
-          </div>
-        ) : error ? (
-          <div className="text-center py-12 text-secondary-600">{error}</div>
-        ) : filteredEvents.length === 0 ? (
-          <div className="text-center py-12 text-secondary-600">{t('workshops.noWorkshops')}</div>
-        ) : (
-          filteredEvents.map((event) => (
-            <WorkshopRowCard key={event.id} event={event} />
-          ))
-        )}
-      </div>
-    </div>
+      <div className="results-summary" aria-live="polite">{isArabic ? `${visibleEvents.length} ورشة متاحة` : `${visibleEvents.length} workshop${visibleEvents.length === 1 ? '' : 's'} available`}</div>
+      {loading ? <div className="workshop-status">{isArabic ? 'جاري تحميل التوفر الحالي…' : 'Loading current availability…'}</div>
+        : error ? <div className="workshop-status" role="alert">{isArabic ? 'تعذر تحميل الورش. حاول مرة أخرى.' : 'We could not load workshops. Please try again.'}</div>
+        : visibleEvents.length === 0 ? <div className="workshop-status"><h2>{isArabic ? 'لا توجد نتائج مطابقة' : 'No exact matches'}</h2><p>{isArabic ? 'جرّب إزالة أحد الفلاتر أو اختر كل المواعيد.' : 'Try removing a filter or viewing all dates.'}</p><button type="button" onClick={() => { setQuery(''); setCategory(''); setLocation(''); setDateFilter('all'); }}>{isArabic ? 'مسح الفلاتر' : 'Clear filters'}</button></div>
+        : <div className="catalog-grid">{visibleEvents.map(event => <CatalogCard key={event.slug} event={event} locale={locale} market={branch} />)}</div>}
+    </main>
   );
 }
 
-function WorkshopRowCard({ event }: { event: PretixEvent }) {
-  const { t, locale } = useTranslation();
-  const eventName = getLocalizedName(event.name, locale);
-
-  const gradients = [
-    'bg-gradient-to-br from-primary to-cyan-400',
-    'bg-gradient-to-br from-cyan-400 to-purple-400',
-    'bg-gradient-to-br from-orange-300 to-primary',
-    'bg-gradient-to-br from-pink-300 to-rose-400',
-  ];
-
-  const gradient = gradients[event.id % gradients.length];
-  const branchBadge = event.organizer === 'yadawi' ? '🇰🇼 KW' : '🇸🇦 SA';
-
-  return (
-    <Link href={`/workshops/${event.slug}`} className="card grid grid-cols-[1.1fr_1.4fr] gap-2.5">
-      <div
-        className={`h-24 rounded-[16px] ${event.coverImage ? 'bg-cover bg-center' : gradient} relative overflow-hidden`}
-        style={event.coverImage ? { backgroundImage: `url(${event.coverImage})` } : {}}
-      >
-        {!event.coverImage && <div className="absolute inset-0 bg-white/20"></div>}
-        {/* Branch flag badge */}
-        <div style={{
-          position: 'absolute',
-          top: 6,
-          right: 6,
-          background: 'rgba(255,255,255,0.92)',
-          borderRadius: 6,
-          padding: '2px 6px',
-          fontSize: 9,
-          fontWeight: 700,
-          lineHeight: 1.4,
-        }}>
-          {branchBadge}
-        </div>
-      </div>
-
-      <div className="p-2.5 flex flex-col justify-between">
-        <div>
-          <h3 className="text-xs font-extrabold text-secondary-900 mb-1 leading-tight">
-            {eventName}
-          </h3>
-
-          <div className="flex gap-2.5 text-[11px] text-secondary-600 mb-2">
-            <span className="flex items-center gap-1">
-              <Calendar size={10} />
-              {formatDate(event.date_from, locale)}
-            </span>
-            <span className="flex items-center gap-1">
-              <MapPin size={10} />
-              {event.location || 'Riyadh'}
-            </span>
-          </div>
-        </div>
-
-        <div className="mt-2">
-          <button className="btn btn-primary w-full text-xs py-2">
-            {t('workshops.viewDetails')} →
-          </button>
-        </div>
-      </div>
-    </Link>
-  );
+function CatalogCard({ event, locale, market }: { event: PretixEvent; locale: string; market: 'KWT' | 'KSA' }) {
+  const isArabic = locale === 'ar';
+  return <article className="catalog-card">
+    <Link href={`/workshops/${event.slug}?market=${market}`} className="catalog-card-image" aria-label={getLocalizedName(event.name, locale)} style={event.coverImage ? { backgroundImage: `url(${event.coverImage})` } : undefined}>{!event.coverImage && <Sparkles size={34} />}</Link>
+    <div className="catalog-card-copy">
+      <div className="catalog-badges">{event.category && <span>{event.category}</span>}{event.skillLevel && <span>{event.skillLevel}</span>}{event.ageGroup && <span>{event.ageGroup}</span>}</div>
+      <h2><Link href={`/workshops/${event.slug}?market=${market}`}>{getLocalizedName(event.name, locale)}</Link></h2>
+      <p><CalendarDays size={15} /> {formatDate(event.date_from, locale)}</p>
+      {event.location && <p><MapPin size={15} /> {event.location}</p>}
+      <footer><strong>{event.minPrice !== undefined ? `${isArabic ? 'من ' : 'From '}${formatCurrency(event.minPrice, event.currency, locale)}` : (isArabic ? 'اعرض الأسعار' : 'View prices')}</strong><Link href={`/workshops/${event.slug}?market=${market}`}>{isArabic ? 'اختر موعداً' : 'Choose a date'}</Link></footer>
+    </div>
+  </article>;
 }

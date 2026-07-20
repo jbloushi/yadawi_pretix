@@ -4,6 +4,13 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, Compass, ShoppingBag, User } from 'lucide-react';
 
+/**
+ * Height of the fixed bar, excluding the iOS home-indicator inset. Exported so
+ * BottomNavWrapper can reserve matching space and page content is never hidden
+ * behind the bar.
+ */
+export const BOTTOM_NAV_HEIGHT = 76;
+
 export function BottomNav() {
   const pathname = usePathname();
   
@@ -15,7 +22,7 @@ export function BottomNav() {
   ];
 
   return (
-    <div style={{
+    <nav aria-label="Primary" style={{
       position: 'fixed',
       bottom: 0,
       left: 0,
@@ -25,6 +32,7 @@ export function BottomNav() {
       borderTop: '1px solid rgba(61,43,26,0.08)',
       display: 'flex',
       padding: '8px 0 16px',
+      paddingBottom: 'calc(16px + env(safe-area-inset-bottom))',
       zIndex: 100,
     }}>
       {navItems.map((item) => {
@@ -35,6 +43,7 @@ export function BottomNav() {
           <Link
             key={item.label}
             href={item.href}
+            aria-current={isActive ? 'page' : undefined}
             style={{
               flex: 1,
               display: 'flex',
@@ -72,6 +81,6 @@ export function BottomNav() {
           </Link>
         );
       })}
-    </div>
+    </nav>
   );
 }

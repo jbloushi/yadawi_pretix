@@ -1,15 +1,33 @@
 'use client';
 
 import Link from 'next/link';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useTranslation } from '@/lib/i18n';
 import { useCart } from '@/lib/cart';
 import { useBranch } from '@/lib/branch';
-import { Search, Bell, ShoppingBag } from 'lucide-react';
+import { Search, ShoppingBag, Globe2 } from 'lucide-react';
+import type { Branch } from '@/lib/branch';
 
 export function Header() {
-  const { locale } = useTranslation();
-  const { itemCount } = useCart();
-  const { branch, setBranch } = useBranch();
+  const router = useRouter();
+  const { locale, setLocale } = useTranslation();
+  const { itemCount, clearCart } = useCart();
+  const { branch, setBranch, confirmed, recommendedBranch } = useBranch();
+  const [pendingBranch, setPendingBranch] = useState<Branch | null>(null);
+  const [query, setQuery] = useState('');
+
+  const requestBranch = (next: Branch) => {
+    if (next === branch && confirmed) return;
+    setPendingBranch(next);
+  };
+
+  const finishBranchChange = (clearCurrent: boolean) => {
+    if (!pendingBranch) return;
+    if (clearCurrent) clearCart();
+    setBranch(pendingBranch);
+    setPendingBranch(null);
+  };
 
   return (
     <header>
@@ -31,17 +49,20 @@ export function Header() {
 
           {/* Nav Icons */}
           <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-            <Link href="/cart" style={{
-              width: 38,
-              height: 38,
-              borderRadius: 12,
-              background: '#F2EAD8',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              position: 'relative',
-              textDecoration: 'none',
-            }}>
+            <Link
+              href="/cart"
+              aria-label={itemCount > 0 ? `Cart, ${itemCount} items` : 'Cart, empty'}
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 12,
+                background: '#F2EAD8',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                position: 'relative',
+                textDecoration: 'none',
+              }}>
               <ShoppingBag size={18} color="#3D2B1A" />
               {itemCount > 0 && (
                 <span style={{
@@ -59,23 +80,30 @@ export function Header() {
                   alignItems: 'center',
                   justifyContent: 'center',
                   border: '2px solid #FAF6F0',
-                }}>
-                  {itemCount}
+                }}
+                  aria-hidden="true"
+                >
+                  {itemCount > 99 ? '99+' : itemCount}
                 </span>
               )}
             </Link>
-            <button style={{
-              width: 38,
-              height: 38,
-              borderRadius: 12,
-              background: '#F2EAD8',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              border: 'none',
-              cursor: 'pointer',
-            }}>
-              <Bell size={18} color="#3D2B1A" />
+            <button
+              type="button"
+              aria-label={locale === 'en' ? 'Switch to Arabic' : 'Switch to English'}
+              onClick={() => setLocale(locale === 'en' ? 'ar' : 'en')}
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 12,
+                background: '#F2EAD8',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: 'none',
+                cursor: 'pointer',
+              }}>
+              <Globe2 size={18} color="#3D2B1A" />
+              <span className="sr-only">{locale === 'en' ? 'العربية' : 'English'}</span>
             </button>
           </div>
         </div>
@@ -90,7 +118,10 @@ export function Header() {
           marginTop: -6, // pull up slightly
         }}>
           <button
-            onClick={() => setBranch('KWT')}
+            type="button"
+            onClick={() => requestBranch('KWT')}
+            aria-pressed={branch === 'KWT'}
+            aria-label="Show Kuwait branch"
             style={{
               flex: 1,
               padding: '6px 0',
@@ -106,14 +137,20 @@ export function Header() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: 6
+              gap: 6,
+              minWidth: 0,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden'
             }}
           >
-            <img src="https://flagcdn.com/w20/kw.png" alt="KW" style={{ width: 14, height: 'auto', borderRadius: 2 }} />
+            <img src="https://flagcdn.com/w20/kw.png" alt="" aria-hidden="true" width={14} height={10} style={{ width: 14, height: 'auto', borderRadius: 2 }} />
             Kuwait
           </button>
           <button
-            onClick={() => setBranch('KSA')}
+            type="button"
+            onClick={() => requestBranch('KSA')}
+            aria-pressed={branch === 'KSA'}
+            aria-label="Show Saudi Arabia branch"
             style={{
               flex: 1,
               padding: '6px 0',
@@ -129,10 +166,13 @@ export function Header() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: 6
+              gap: 6,
+              minWidth: 0,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden'
             }}
           >
-            <img src="https://flagcdn.com/w20/sa.png" alt="SA" style={{ width: 14, height: 'auto', borderRadius: 2 }} />
+            <img src="https://flagcdn.com/w20/sa.png" alt="" aria-hidden="true" width={14} height={10} style={{ width: 14, height: 'auto', borderRadius: 2 }} />
             Saudi Arabia
           </button>
         </div>
@@ -140,7 +180,7 @@ export function Header() {
 
       {/* SEARCH */}
       <div style={{ padding: '12px 20px' }}>
-        <div style={{
+        <form onSubmit={(event) => { event.preventDefault(); router.push(`/workshops?q=${encodeURIComponent(query.trim())}`); }} style={{
           display: 'flex',
           alignItems: 'center',
           gap: 10,
@@ -150,9 +190,13 @@ export function Header() {
           border: '1.5px solid transparent',
           transition: 'all 0.2s',
         }}>
-          <Search size={16} color="#8B7B6E" />
+          <Search size={16} color="#6F6154" aria-hidden="true" />
           <input
+            type="search"
+            aria-label="Search workshops, classes and products"
             placeholder="Search workshops, classes, products..."
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
             style={{
               flex: 1,
               background: 'none',
@@ -163,8 +207,42 @@ export function Header() {
               color: '#3D2B1A',
             }}
           />
-        </div>
+        </form>
       </div>
+
+      {(!confirmed || pendingBranch) && (
+        <div className="market-dialog-backdrop" role="presentation">
+          <section className="market-dialog" role="dialog" aria-modal="true" aria-labelledby="market-dialog-title">
+            <div className="market-dialog-kicker">Your market</div>
+            <h2 id="market-dialog-title">
+              {!confirmed ? `Show workshops and prices for ${recommendedBranch === 'KWT' ? 'Kuwait' : 'Saudi Arabia'}?` : 'Switch market?'}
+            </h2>
+            <p>
+              {itemCount > 0 && pendingBranch
+                ? `Your ${branch === 'KWT' ? 'Kuwait' : 'Saudi Arabia'} cart has ${itemCount} item${itemCount === 1 ? '' : 's'}. Keep it for later or clear it before switching.`
+                : 'You can switch any time. Prices, availability, payment methods and policies are kept separate by market.'}
+            </p>
+            <div className="market-dialog-actions">
+              {itemCount > 0 && pendingBranch && (
+                <button type="button" className="market-secondary" onClick={() => finishBranchChange(true)}>Clear cart & switch</button>
+              )}
+              <button type="button" className="market-primary" onClick={() => {
+                const target = pendingBranch || recommendedBranch;
+                setBranch(target);
+                setPendingBranch(null);
+              }}>
+                {itemCount > 0 && pendingBranch ? 'Keep cart for later & switch' : `Continue with ${(pendingBranch || recommendedBranch) === 'KWT' ? 'Kuwait' : 'Saudi Arabia'}`}
+              </button>
+              {!confirmed && (
+                <button type="button" className="market-link" onClick={() => setPendingBranch(recommendedBranch === 'KWT' ? 'KSA' : 'KWT')}>
+                  Choose {recommendedBranch === 'KWT' ? 'Saudi Arabia' : 'Kuwait'} instead
+                </button>
+              )}
+              {confirmed && <button type="button" className="market-link" onClick={() => setPendingBranch(null)}>Cancel</button>}
+            </div>
+          </section>
+        </div>
+      )}
     </header>
   );
 }

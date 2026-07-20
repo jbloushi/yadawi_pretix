@@ -5,14 +5,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { AdminHeader } from '@/components/admin/AdminHeader';
+import { COLORS } from '@/lib/theme';
 
-const COLORS = {
-  cream: '#FAF6F0',
-  sand: '#F2EAD8',
-  terracotta: '#C8622A',
-  bark: '#3D2B1A',
-  smoke: '#8B7B6E',
-};
 
 const rolePermissions: Record<string, string[]> = {
   admin: ['/admin', '/admin/workshops', '/admin/workshops/new', '/admin/workshops/[id]', '/admin/orders', '/admin/users', '/admin/reports', '/admin/checkin', '/admin/settings'],

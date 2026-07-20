@@ -12,23 +12,8 @@ import {
   Mail,
   X
 } from 'lucide-react';
+import { COLORS } from '@/lib/theme';
 
-const COLORS = {
-  terracotta: '#C8622A',
-  terracottaLight: 'rgba(200, 98, 42, 0.1)',
-  bark: '#3D2B1A',
-  sand: '#F2EAD8',
-  cream: '#FAF6F0',
-  smoke: '#8B7B6E',
-  success: '#22C55E',
-  successLight: 'rgba(34, 197, 94, 0.1)',
-  warning: '#F59E0B',
-  warningLight: 'rgba(245, 158, 11, 0.1)',
-  danger: '#EF4444',
-  dangerLight: 'rgba(239, 68, 68, 0.1)',
-  info: '#3B82F6',
-  infoLight: 'rgba(59, 130, 246, 0.1)',
-};
 
 interface Order {
   id: string;
@@ -38,6 +23,7 @@ interface Order {
   email: string;
   phone: string;
   event_name: string;
+  event_slug: string;
   items: { name: string; quantity: number; price: number }[];
   total: number;
   status: 'pending' | 'paid' | 'cancelled' | 'refunded';
@@ -56,6 +42,34 @@ export default function OrdersPage() {
 
   const userRole = (session?.user as any)?.role || 'viewer';
   const userBranch = (session?.user as any)?.branch || 'ALL';
+  const [marking, setMarking] = useState<string | null>(null);
+
+  const handleMarkPaid = async (order: Order) => {
+    if (marking === order.code) return;
+    if (!confirm(`Mark ${order.code} as paid and WhatsApp the customer the invoice + calendar invite?`)) return;
+    setMarking(order.code);
+    try {
+      const res = await fetch('/api/admin/orders/mark-paid', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ event: order.event_slug, code: order.code }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.ok) {
+        setOrders(prev => prev.map(o => o.code === order.code ? { ...o, status: 'paid' } : o));
+        const s = data.sent || {};
+        alert(`✅ ${order.code} marked paid.\nSent → invoice: ${!!s.invoice}, calendar: ${!!s.ics}` +
+          (data.warning ? `\n⚠️ ${data.warning}` : ''));
+      } else {
+        alert(`Failed: ${data.error || data.detail || res.status}`);
+      }
+    } catch (e) {
+      alert(`Error: ${e}`);
+    } finally {
+      setMarking(null);
+    }
+  };
 
   useEffect(() => {
     if (status === 'loading' || !session?.user?.email) return;
@@ -96,7 +110,7 @@ export default function OrdersPage() {
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [filter, search, status, branchFilter]);
+  }, [filter, search, status, branchFilter, userRole, userBranch]);
 
   const filteredOrders = orders;
 
@@ -247,6 +261,16 @@ export default function OrdersPage() {
                         <button onClick={() => setSelectedOrder(order)} style={{ width: 32, height: 32, borderRadius: 8, background: COLORS.infoLight, border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: COLORS.info, cursor: 'pointer' }}>
                           <Eye size={16} />
                         </button>
+                        {order.status === 'pending' && userRole === 'admin' && (
+                          <button
+                            onClick={() => handleMarkPaid(order)}
+                            disabled={marking === order.code}
+                            title="Mark paid + send WhatsApp confirmation"
+                            style={{ height: 32, padding: '0 12px', borderRadius: 8, background: COLORS.terracotta, border: 'none', color: 'white', fontSize: 12, fontWeight: 700, cursor: marking ? 'wait' : 'pointer', opacity: marking === order.code ? 0.6 : 1 }}
+                          >
+                            {marking === order.code ? '…' : 'Mark Paid'}
+                          </button>
+                        )}
                         {order.status === 'paid' && (
                           <button style={{ width: 32, height: 32, borderRadius: 8, background: COLORS.warningLight, border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: COLORS.warning, cursor: 'pointer' }}>
                             <RefreshCw size={16} />

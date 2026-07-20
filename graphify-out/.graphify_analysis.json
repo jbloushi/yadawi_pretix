@@ -1,0 +1,697 @@
+{
+  "communities": {
+    "0": [
+      "frontend_src_app_account_page",
+      "frontend_src_app_account_page_page",
+      "frontend_src_app_page",
+      "frontend_src_app_page_page",
+      "frontend_src_app_workshops_page",
+      "frontend_src_app_workshops_page_page",
+      "frontend_src_app_workshops_slug_page",
+      "frontend_src_app_workshops_slug_page_page",
+      "frontend_src_components_account_accountpage",
+      "frontend_src_components_account_accountpage_accountpage",
+      "frontend_src_components_account_accountpage_mockorders",
+      "frontend_src_components_layout_footer",
+      "frontend_src_components_layout_footer_colors",
+      "frontend_src_components_layout_footer_footer",
+      "frontend_src_components_workshops_homepage",
+      "frontend_src_components_workshops_homepage_categories",
+      "frontend_src_components_workshops_homepage_eventwithprice",
+      "frontend_src_components_workshops_homepage_features",
+      "frontend_src_components_workshops_homepage_homepage",
+      "frontend_src_components_workshops_homepage_icons",
+      "frontend_src_components_workshops_workshopdetailpage",
+      "frontend_src_components_workshops_workshopdetailpage_defaultreviews",
+      "frontend_src_components_workshops_workshopdetailpage_defaultsyllabus",
+      "frontend_src_components_workshops_workshopdetailpage_icons",
+      "frontend_src_components_workshops_workshopdetailpage_workshopdetailpage",
+      "frontend_src_components_workshops_workshopspage",
+      "frontend_src_components_workshops_workshopspage_filterchips",
+      "frontend_src_components_workshops_workshopspage_workshoprowcard",
+      "frontend_src_components_workshops_workshopspage_workshopspage",
+      "frontend_src_lib_branch_usebranch",
+      "frontend_src_lib_i18n",
+      "frontend_src_lib_i18n_i18ncontext",
+      "frontend_src_lib_i18n_i18ncontexttype",
+      "frontend_src_lib_i18n_language",
+      "frontend_src_lib_i18n_translations",
+      "frontend_src_lib_i18n_translationsar",
+      "frontend_src_lib_i18n_translationsen",
+      "frontend_src_lib_i18n_usei18n",
+      "frontend_src_lib_i18n_usetranslation",
+      "frontend_src_lib_utils",
+      "frontend_src_lib_utils_cn",
+      "frontend_src_lib_utils_formatcurrency",
+      "frontend_src_lib_utils_formatdate",
+      "frontend_src_lib_utils_formatdatetime",
+      "frontend_src_lib_utils_formattime",
+      "frontend_src_lib_utils_generateordercachekey",
+      "frontend_src_lib_utils_getlocalizedname",
+      "frontend_src_lib_utils_getregionfromslug",
+      "frontend_src_types_pretix",
+      "frontend_src_types_pretix_cartposition",
+      "frontend_src_types_pretix_pretixcart",
+      "frontend_src_types_pretix_pretixevent",
+      "frontend_src_types_pretix_pretixorder",
+      "frontend_src_types_pretix_pretixorderposition",
+      "frontend_src_types_pretix_pretixvariation",
+      "frontend_src_types_pretix_webhookpayload"
+    ],
+    "1": [
+      "frontend_src_app_book_page",
+      "frontend_src_app_book_page_bookpage",
+      "frontend_src_app_book_page_bookseeder",
+      "frontend_src_app_cart_layout",
+      "frontend_src_app_cart_layout_cartpage",
+      "frontend_src_app_cart_page",
+      "frontend_src_app_cart_page_cartpage",
+      "frontend_src_app_cart_page_colors",
+      "frontend_src_app_checkout_page",
+      "frontend_src_app_checkout_page_page",
+      "frontend_src_app_checkout_slug_page",
+      "frontend_src_app_checkout_slug_page_page",
+      "frontend_src_app_layout",
+      "frontend_src_app_layout_metadata",
+      "frontend_src_app_layout_rootlayout",
+      "frontend_src_app_success_page",
+      "frontend_src_app_success_page_page",
+      "frontend_src_components_cart_cartpopup",
+      "frontend_src_components_cart_cartpopup_cartpopup",
+      "frontend_src_components_cart_cartpopupwrapper",
+      "frontend_src_components_cart_cartpopupwrapper_cartpopupwrapper",
+      "frontend_src_components_checkout_checkoutpage",
+      "frontend_src_components_checkout_checkoutpage_checkoutform",
+      "frontend_src_components_checkout_checkoutpage_checkoutpage",
+      "frontend_src_components_checkout_checkoutpage_colors",
+      "frontend_src_components_checkout_checkoutpage_successview",
+      "frontend_src_components_checkout_successpage",
+      "frontend_src_components_checkout_successpage_successcontent",
+      "frontend_src_components_checkout_successpage_successpage",
+      "frontend_src_components_layout_bottomnav",
+      "frontend_src_components_layout_bottomnav_bottomnav",
+      "frontend_src_components_layout_bottomnavwrapper",
+      "frontend_src_components_layout_bottomnavwrapper_bottomnavwrapper",
+      "frontend_src_components_layout_header",
+      "frontend_src_components_layout_header_header",
+      "frontend_src_components_providers_nextauthprovider",
+      "frontend_src_components_providers_nextauthprovider_nextauthprovider",
+      "frontend_src_lib_branch",
+      "frontend_src_lib_branch_branch",
+      "frontend_src_lib_branch_branchcontext",
+      "frontend_src_lib_branch_branchcontexttype",
+      "frontend_src_lib_branch_branchlabel",
+      "frontend_src_lib_branch_branchprovider",
+      "frontend_src_lib_branch_orgslugtobranch",
+      "frontend_src_lib_cart",
+      "frontend_src_lib_cart_cartcontext",
+      "frontend_src_lib_cart_cartcontexttype",
+      "frontend_src_lib_cart_cartitem",
+      "frontend_src_lib_cart_cartprovider",
+      "frontend_src_lib_cart_usecart",
+      "frontend_src_lib_i18n_i18nprovider"
+    ],
+    "2": [
+      "autoprefixer",
+      "eslint",
+      "eslint_config_next",
+      "frontend_package",
+      "frontend_package_devdependencies",
+      "frontend_package_devdependencies_autoprefixer",
+      "frontend_package_devdependencies_eslint",
+      "frontend_package_devdependencies_eslint_config_next",
+      "frontend_package_devdependencies_postcss",
+      "frontend_package_devdependencies_sharp",
+      "frontend_package_devdependencies_tailwindcss",
+      "frontend_package_devdependencies_types_node",
+      "frontend_package_devdependencies_types_qrcode",
+      "frontend_package_devdependencies_types_react",
+      "frontend_package_devdependencies_types_react_dom",
+      "frontend_package_devdependencies_typescript",
+      "frontend_package_name",
+      "frontend_package_private",
+      "frontend_package_scripts",
+      "frontend_package_scripts_build",
+      "frontend_package_scripts_dev",
+      "frontend_package_scripts_lint",
+      "frontend_package_scripts_start",
+      "frontend_package_version",
+      "postcss",
+      "pretix_nbk_mpg_setup",
+      "pretix_nbk_mpg_setup_custombuild",
+      "pretix_nbk_mpg_setup_custombuild_run",
+      "sharp",
+      "tailwindcss",
+      "types_node",
+      "types_qrcode",
+      "types_react",
+      "types_react_dom",
+      "typescript"
+    ],
+    "3": [
+      "frontend_src_app_api_admin_events_route",
+      "frontend_src_app_api_admin_events_route_get",
+      "frontend_src_app_api_admin_events_route_getcookie",
+      "frontend_src_app_api_admin_events_route_getorganizertoken",
+      "frontend_src_app_api_admin_events_route_post",
+      "frontend_src_app_api_admin_events_route_tostr",
+      "frontend_src_app_api_admin_events_slug_checkin_route",
+      "frontend_src_app_api_admin_events_slug_checkin_route_get",
+      "frontend_src_app_api_admin_events_slug_checkin_route_post",
+      "frontend_src_app_api_admin_orders_route",
+      "frontend_src_app_api_admin_orders_route_get",
+      "frontend_src_app_api_admin_orders_route_tostr",
+      "frontend_src_app_api_admin_stats_route",
+      "frontend_src_app_api_admin_stats_route_get",
+      "frontend_src_app_api_auth_nextauth_route",
+      "frontend_src_app_api_auth_nextauth_route_handler",
+      "frontend_src_lib_admin_auth",
+      "frontend_src_lib_admin_auth_adminauthoptions",
+      "frontend_src_lib_admin_auth_admins",
+      "frontend_src_lib_admin_auth_authoptions",
+      "frontend_src_lib_pretix",
+      "frontend_src_lib_pretix_getcheckouturl",
+      "frontend_src_lib_pretix_getevent",
+      "frontend_src_lib_pretix_geteventitems",
+      "frontend_src_lib_pretix_getevents",
+      "frontend_src_lib_pretix_getorder",
+      "frontend_src_lib_pretix_getorderediturl",
+      "frontend_src_lib_pretix_getticketdownloadurl",
+      "frontend_src_lib_pretix_pretixfetch",
+      "frontend_src_lib_pretix_searchorderbyemail",
+      "frontend_src_types_pretix_pretixitem"
+    ],
+    "4": [
+      "clsx",
+      "date_fns",
+      "frontend_package_dependencies",
+      "frontend_package_dependencies_clsx",
+      "frontend_package_dependencies_date_fns",
+      "frontend_package_dependencies_hookform_resolvers",
+      "frontend_package_dependencies_lucide_react",
+      "frontend_package_dependencies_next",
+      "frontend_package_dependencies_next_auth",
+      "frontend_package_dependencies_next_intl",
+      "frontend_package_dependencies_qrcode",
+      "frontend_package_dependencies_react",
+      "frontend_package_dependencies_react_dom",
+      "frontend_package_dependencies_react_hook_form",
+      "frontend_package_dependencies_tailwind_merge",
+      "frontend_package_dependencies_tanstack_react_query",
+      "frontend_package_dependencies_zod",
+      "hookform_resolvers",
+      "lucide_react",
+      "next",
+      "next_auth",
+      "next_intl",
+      "qrcode",
+      "react",
+      "react_dom",
+      "react_hook_form",
+      "tailwind_merge",
+      "tanstack_react_query",
+      "zod"
+    ],
+    "5": [
+      "frontend_tsconfig",
+      "frontend_tsconfig_compileroptions",
+      "frontend_tsconfig_compileroptions_allowjs",
+      "frontend_tsconfig_compileroptions_esmoduleinterop",
+      "frontend_tsconfig_compileroptions_incremental",
+      "frontend_tsconfig_compileroptions_isolatedmodules",
+      "frontend_tsconfig_compileroptions_jsx",
+      "frontend_tsconfig_compileroptions_lib",
+      "frontend_tsconfig_compileroptions_module",
+      "frontend_tsconfig_compileroptions_moduleresolution",
+      "frontend_tsconfig_compileroptions_noemit",
+      "frontend_tsconfig_compileroptions_paths",
+      "frontend_tsconfig_compileroptions_plugins",
+      "frontend_tsconfig_compileroptions_resolvejsonmodule",
+      "frontend_tsconfig_compileroptions_skiplibcheck",
+      "frontend_tsconfig_compileroptions_strict",
+      "frontend_tsconfig_exclude",
+      "frontend_tsconfig_include",
+      "ref_dom",
+      "ref_dom_iterable",
+      "ref_esnext",
+      "ref_next_env_d_ts",
+      "ref_next_types_ts",
+      "ref_node_modules",
+      "ref_ts",
+      "ref_tsx"
+    ],
+    "6": [
+      "appconfig",
+      "basepaymentprovider",
+      "pretix_nbk_mpg_pretix_nbk_mpg_apps",
+      "pretix_nbk_mpg_pretix_nbk_mpg_apps_pluginapp",
+      "pretix_nbk_mpg_pretix_nbk_mpg_apps_pluginapp_ready",
+      "pretix_nbk_mpg_pretix_nbk_mpg_apps_pretixpluginmeta",
+      "pretix_nbk_mpg_pretix_nbk_mpg_init",
+      "pretix_nbk_mpg_pretix_nbk_mpg_payment",
+      "pretix_nbk_mpg_pretix_nbk_mpg_payment_nbkmpgpaymentprovider",
+      "pretix_nbk_mpg_pretix_nbk_mpg_payment_nbkmpgpaymentprovider_checkout_prepare",
+      "pretix_nbk_mpg_pretix_nbk_mpg_payment_nbkmpgpaymentprovider_confirm_payment_from_gateway",
+      "pretix_nbk_mpg_pretix_nbk_mpg_payment_nbkmpgpaymentprovider_create_mpgs_session",
+      "pretix_nbk_mpg_pretix_nbk_mpg_payment_nbkmpgpaymentprovider_execute_payment",
+      "pretix_nbk_mpg_pretix_nbk_mpg_payment_nbkmpgpaymentprovider_payment_form_render",
+      "pretix_nbk_mpg_pretix_nbk_mpg_payment_nbkmpgpaymentprovider_payment_is_valid_session",
+      "pretix_nbk_mpg_pretix_nbk_mpg_payment_nbkmpgpaymentprovider_payment_prepare",
+      "pretix_nbk_mpg_pretix_nbk_mpg_payment_nbkmpgpaymentprovider_settings_form_fields",
+      "pretix_nbk_mpg_pretix_nbk_mpg_signals",
+      "pretix_nbk_mpg_pretix_nbk_mpg_signals_register_payment_provider",
+      "pretix_nbk_mpg_pretix_nbk_mpg_urls",
+      "pretix_nbk_mpg_pretix_nbk_mpg_views",
+      "pretix_nbk_mpg_pretix_nbk_mpg_views_nbk_return",
+      "pretix_nbk_mpg_pretix_nbk_mpg_views_nbk_webhook",
+      "pretix_nbk_mpg_pretix_nbk_mpg_views_rationale_14",
+      "pretix_nbk_mpg_pretix_nbk_mpg_views_rationale_67"
+    ],
+    "7": [
+      "frontend_src_app_admin_layout",
+      "frontend_src_app_admin_layout_layout",
+      "frontend_src_components_admin_adminheader",
+      "frontend_src_components_admin_adminheader_adminheader",
+      "frontend_src_components_admin_adminheader_colors",
+      "frontend_src_components_admin_adminlayout",
+      "frontend_src_components_admin_adminlayout_adminlayout",
+      "frontend_src_components_admin_adminlayout_adminlayoutcontent",
+      "frontend_src_components_admin_adminlayout_colors",
+      "frontend_src_components_admin_adminlayout_mobileblocker",
+      "frontend_src_components_admin_adminlayout_rolepermissions",
+      "frontend_src_components_admin_adminsidebar",
+      "frontend_src_components_admin_adminsidebar_adminsidebar",
+      "frontend_src_components_admin_adminsidebar_colors",
+      "frontend_src_components_admin_adminsidebar_menuitems"
+    ],
+    "8": [
+      "yadawi_mobile_annotated",
+      "yadawi_mobile_annotated_app",
+      "yadawi_mobile_annotated_cartpage",
+      "yadawi_mobile_annotated_categories",
+      "yadawi_mobile_annotated_checkoutpage",
+      "yadawi_mobile_annotated_explorepage",
+      "yadawi_mobile_annotated_homepage",
+      "yadawi_mobile_annotated_icon",
+      "yadawi_mobile_annotated_products",
+      "yadawi_mobile_annotated_profilepage",
+      "yadawi_mobile_annotated_shoppage",
+      "yadawi_mobile_annotated_t",
+      "yadawi_mobile_annotated_workshopdetailpage",
+      "yadawi_mobile_annotated_workshops"
+    ],
+    "9": [
+      "yadawi_mobile_v2",
+      "yadawi_mobile_v2_app",
+      "yadawi_mobile_v2_cartpage",
+      "yadawi_mobile_v2_categories",
+      "yadawi_mobile_v2_checkoutpage",
+      "yadawi_mobile_v2_explorepage",
+      "yadawi_mobile_v2_homepage",
+      "yadawi_mobile_v2_icon",
+      "yadawi_mobile_v2_products",
+      "yadawi_mobile_v2_profilepage",
+      "yadawi_mobile_v2_shoppage",
+      "yadawi_mobile_v2_t",
+      "yadawi_mobile_v2_workshopdetailpage",
+      "yadawi_mobile_v2_workshops"
+    ],
+    "10": [
+      "frontend_src_app_api_pretix_events_route",
+      "frontend_src_app_api_pretix_events_route_get",
+      "frontend_src_app_api_pretix_events_route_normalizeevent",
+      "frontend_src_app_api_pretix_events_route_organizers",
+      "frontend_src_app_api_pretix_events_route_tostr",
+      "frontend_src_app_api_pretix_items_route",
+      "frontend_src_app_api_pretix_items_route_get",
+      "frontend_src_lib_pretix_cache",
+      "frontend_src_lib_pretix_cache_cache",
+      "frontend_src_lib_pretix_cache_cacheentry",
+      "frontend_src_lib_pretix_cache_getcache",
+      "frontend_src_lib_pretix_cache_setcache"
+    ],
+    "11": [
+      "frontend_src_types_admin",
+      "frontend_src_types_admin_adminrole",
+      "frontend_src_types_admin_adminuser",
+      "frontend_src_types_admin_dashboardstats",
+      "frontend_src_types_admin_order",
+      "frontend_src_types_admin_orderposition",
+      "frontend_src_types_admin_reportdata",
+      "frontend_src_types_admin_workshop",
+      "frontend_src_types_admin_workshopitem"
+    ],
+    "12": [
+      "frontend_src_app_api_orders_route",
+      "frontend_src_app_api_orders_route_ensurequotaexists",
+      "frontend_src_app_api_orders_route_gettoken",
+      "frontend_src_app_api_orders_route_orderposition",
+      "frontend_src_app_api_orders_route_orderrequest",
+      "frontend_src_app_api_orders_route_post",
+      "frontend_src_app_api_orders_route_pretixfetch"
+    ],
+    "13": [
+      "frontend_src_app_api_webhooks_pretix_route",
+      "frontend_src_app_api_webhooks_pretix_route_formatchatwootmessage",
+      "frontend_src_app_api_webhooks_pretix_route_forwardtochatwoot",
+      "frontend_src_app_api_webhooks_pretix_route_get",
+      "frontend_src_app_api_webhooks_pretix_route_post",
+      "frontend_src_app_api_webhooks_pretix_route_pretixwebhookpayload",
+      "frontend_src_app_api_webhooks_pretix_route_verifysignature"
+    ],
+    "14": [
+      "pretix_config_install_aapanel",
+      "pretix_config_install_aapanel_django_settings_module",
+      "pretix_config_install_aapanel_log_error",
+      "pretix_config_install_aapanel_log_info",
+      "pretix_config_install_aapanel_pythonpath",
+      "pretix_config_install_aapanel_sh__entry"
+    ],
+    "15": [
+      "frontend_src_app_admin_checkin_page",
+      "frontend_src_app_admin_checkin_page_attendee",
+      "frontend_src_app_admin_checkin_page_checkinpage",
+      "frontend_src_app_admin_checkin_page_colors",
+      "frontend_src_app_admin_checkin_page_eventoption"
+    ],
+    "16": [
+      "frontend_src_app_admin_page",
+      "frontend_src_app_admin_page_admindashboard",
+      "frontend_src_app_admin_page_colors",
+      "frontend_src_app_admin_page_recentorder",
+      "frontend_src_app_admin_page_stats"
+    ],
+    "17": [
+      "frontend_src_app_admin_reports_page",
+      "frontend_src_app_admin_reports_page_colors",
+      "frontend_src_app_admin_reports_page_reportspage",
+      "frontend_src_app_admin_reports_page_salesdata",
+      "frontend_src_app_admin_reports_page_topworkshops"
+    ],
+    "18": [
+      "pretix_config_install",
+      "pretix_config_install_log_error",
+      "pretix_config_install_log_info",
+      "pretix_config_install_log_warn",
+      "pretix_config_install_sh__entry"
+    ],
+    "19": [
+      "pretix_config_install_ubuntu",
+      "pretix_config_install_ubuntu_log_error",
+      "pretix_config_install_ubuntu_log_info",
+      "pretix_config_install_ubuntu_log_warn",
+      "pretix_config_install_ubuntu_sh__entry"
+    ],
+    "20": [
+      "pretix_config_seed_workshops",
+      "pretix_config_seed_workshops_main",
+      "pretix_config_seed_workshops_rationale_233",
+      "pretix_config_seed_workshops_seed_organizers",
+      "pretix_config_seed_workshops_seed_workshops"
+    ],
+    "21": [
+      "frontend_src_app_admin_orders_page",
+      "frontend_src_app_admin_orders_page_colors",
+      "frontend_src_app_admin_orders_page_order",
+      "frontend_src_app_admin_orders_page_orderspage"
+    ],
+    "22": [
+      "frontend_src_app_admin_settings_page",
+      "frontend_src_app_admin_settings_page_colors",
+      "frontend_src_app_admin_settings_page_settingspage",
+      "frontend_src_app_admin_settings_page_tabs"
+    ],
+    "23": [
+      "frontend_src_app_admin_users_page",
+      "frontend_src_app_admin_users_page_colors",
+      "frontend_src_app_admin_users_page_users",
+      "frontend_src_app_admin_users_page_userspage"
+    ],
+    "24": [
+      "frontend_src_app_admin_workshops_new_page",
+      "frontend_src_app_admin_workshops_new_page_colors",
+      "frontend_src_app_admin_workshops_new_page_newworkshoppage",
+      "frontend_src_app_admin_workshops_new_page_tickettype"
+    ],
+    "25": [
+      "frontend_src_app_admin_workshops_page",
+      "frontend_src_app_admin_workshops_page_colors",
+      "frontend_src_app_admin_workshops_page_workshop",
+      "frontend_src_app_admin_workshops_page_workshopspage"
+    ],
+    "26": [
+      "frontend_src_app_admin_workshops_slug_page",
+      "frontend_src_app_admin_workshops_slug_page_colors",
+      "frontend_src_app_admin_workshops_slug_page_editworkshoppage",
+      "frontend_src_app_admin_workshops_slug_page_tickettype"
+    ],
+    "27": [
+      "frontend_src_app_api_admin_events_slug_route",
+      "frontend_src_app_api_admin_events_slug_route_get",
+      "frontend_src_app_api_admin_events_slug_route_getcookie",
+      "frontend_src_app_api_admin_events_slug_route_patch"
+    ],
+    "28": [
+      "frontend_next_config",
+      "frontend_next_config_nextconfig",
+      "frontend_next_config_rationale_11"
+    ],
+    "29": [
+      "frontend_src_app_login_page",
+      "frontend_src_app_login_page_colors",
+      "frontend_src_app_login_page_loginpage"
+    ],
+    "30": [
+      "frontend_next_env_d",
+      "frontend_next_env_d_rationale_4"
+    ],
+    "31": [
+      "frontend_src_app_api_admin_orders_mark_paid_route",
+      "frontend_src_app_api_admin_orders_mark_paid_route_post"
+    ],
+    "32": [
+      "frontend_src_app_api_pretix_event_slug_route",
+      "frontend_src_app_api_pretix_event_slug_route_get"
+    ],
+    "33": [
+      "frontend_src_app_api_pretix_events_slug_items_route",
+      "frontend_src_app_api_pretix_events_slug_items_route_get"
+    ],
+    "34": [
+      "frontend_src_app_api_pretix_events_slug_subevents_route",
+      "frontend_src_app_api_pretix_events_slug_subevents_route_get"
+    ],
+    "35": [
+      "frontend_src_app_shop_page",
+      "frontend_src_app_shop_page_shoppage"
+    ],
+    "36": [
+      "frontend_tailwind_config",
+      "frontend_tailwind_config_config"
+    ],
+    "37": [
+      "pretix_config_local_seed",
+      "pretix_config_local_seed_seed"
+    ],
+    "38": [
+      "pretix_config_single_seed",
+      "pretix_config_single_seed_seed"
+    ],
+    "39": [
+      "yadawi_redesign",
+      "yadawi_redesign_yadawihomepage"
+    ],
+    "40": [
+      "frontend_postcss_config"
+    ]
+  },
+  "cohesion": {
+    "0": 0.07207792207792207,
+    "1": 0.06196078431372549,
+    "2": 0.05714285714285714,
+    "3": 0.0989247311827957,
+    "4": 0.06896551724137931,
+    "5": 0.07692307692307693,
+    "6": 0.09333333333333334,
+    "7": 0.1619047619047619,
+    "8": 0.14285714285714285,
+    "9": 0.14285714285714285,
+    "10": 0.3181818181818182,
+    "11": 0.2222222222222222,
+    "12": 0.47619047619047616,
+    "13": 0.42857142857142855,
+    "14": 0.4,
+    "15": 0.4,
+    "16": 0.4,
+    "17": 0.4,
+    "18": 0.7,
+    "19": 0.6,
+    "20": 0.6,
+    "21": 0.5,
+    "22": 0.5,
+    "23": 0.5,
+    "24": 0.5,
+    "25": 0.5,
+    "26": 0.5,
+    "27": 0.8333333333333334,
+    "28": 0.6666666666666666,
+    "29": 0.6666666666666666,
+    "30": 1.0,
+    "31": 1.0,
+    "32": 1.0,
+    "33": 1.0,
+    "34": 1.0,
+    "35": 1.0,
+    "36": 1.0,
+    "37": 1.0,
+    "38": 1.0,
+    "39": 1.0,
+    "40": 1.0
+  },
+  "gods": [
+    {
+      "id": "frontend_src_lib_i18n_usetranslation",
+      "label": "useTranslation()",
+      "degree": 15
+    },
+    {
+      "id": "frontend_tsconfig_compileroptions",
+      "label": "compilerOptions",
+      "degree": 15
+    },
+    {
+      "id": "pretix_nbk_mpg_pretix_nbk_mpg_payment_nbkmpgpaymentprovider",
+      "label": "NBKMPGPaymentProvider",
+      "degree": 14
+    },
+    {
+      "id": "frontend_src_lib_cart_usecart",
+      "label": "useCart()",
+      "degree": 13
+    },
+    {
+      "id": "frontend_src_lib_utils_formatcurrency",
+      "label": "formatCurrency()",
+      "degree": 13
+    },
+    {
+      "id": "frontend_src_lib_pretix_pretixfetch",
+      "label": "pretixFetch()",
+      "degree": 10
+    },
+    {
+      "id": "frontend_src_lib_utils_formatdate",
+      "label": "formatDate()",
+      "degree": 10
+    },
+    {
+      "id": "frontend_src_components_layout_header_header",
+      "label": "Header()",
+      "degree": 9
+    },
+    {
+      "id": "frontend_src_lib_utils_getlocalizedname",
+      "label": "getLocalizedName()",
+      "degree": 9
+    },
+    {
+      "id": "frontend_src_components_workshops_workshopdetailpage_workshopdetailpage",
+      "label": "WorkshopDetailPage()",
+      "degree": 8
+    }
+  ],
+  "surprises": [
+    {
+      "source": "CustomBuild",
+      "target": "build",
+      "source_files": [
+        "pretix-nbk-mpg/setup.py",
+        "frontend/package.json"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "inherits",
+      "why": "connects across different repos/directories"
+    },
+    {
+      "source": "register_payment_provider()",
+      "target": "NBKMPGPaymentProvider",
+      "source_files": [
+        "pretix-nbk-mpg/pretix_nbk_mpg/signals.py",
+        "pretix-nbk-mpg/pretix_nbk_mpg/payment.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "indirect_call",
+      "why": "inferred connection - not explicitly stated in source; peripheral node `register_payment_provider()` unexpectedly reaches hub `NBKMPGPaymentProvider`"
+    },
+    {
+      "source": "BookSeeder()",
+      "target": "getLocalizedName()",
+      "source_files": [
+        "frontend/src/app/book/page.tsx",
+        "frontend/src/lib/utils.ts"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "bridges separate communities"
+    },
+    {
+      "source": "CartPage()",
+      "target": "formatCurrency()",
+      "source_files": [
+        "frontend/src/app/cart/page.tsx",
+        "frontend/src/lib/utils.ts"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "bridges separate communities"
+    },
+    {
+      "source": "CartPopup()",
+      "target": "formatCurrency()",
+      "source_files": [
+        "frontend/src/components/cart/CartPopup.tsx",
+        "frontend/src/lib/utils.ts"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "bridges separate communities"
+    }
+  ],
+  "questions": [
+    {
+      "type": "bridge_node",
+      "question": "Why does `dependencies` connect `dependencies` to `devDependencies`?",
+      "why": "High betweenness centrality (0.015) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `PretixEvent` connect `WorkshopDetailPage.tsx` to `pretix.ts`?",
+      "why": "High betweenness centrality (0.014) - this node is a cross-community bridge."
+    },
+    {
+      "type": "isolated_nodes",
+      "question": "What connects `nextConfig`, `name`, `version` to the rest of the system?",
+      "why": "138 weakly-connected nodes found - possible documentation gaps or missing edges."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `WorkshopDetailPage.tsx` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.07207792207792207 - nodes in this community are weakly interconnected."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `layout.tsx` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.06196078431372549 - nodes in this community are weakly interconnected."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `devDependencies` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.05714285714285714 - nodes in this community are weakly interconnected."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `pretix.ts` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.0989247311827957 - nodes in this community are weakly interconnected."
+    }
+  ]
+}

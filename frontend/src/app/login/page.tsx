@@ -3,14 +3,8 @@
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { COLORS } from '@/lib/theme';
 
-const COLORS = {
-  terracotta: '#C8622A',
-  bark: '#3D2B1A',
-  sand: '#F2EAD8',
-  cream: '#FAF6F0',
-  smoke: '#8B7B6E',
-};
 
 export default function LoginPage() {
   const router = useRouter();

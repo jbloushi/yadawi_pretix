@@ -16,14 +16,8 @@ import {
   X
 } from 'lucide-react';
 import { useState } from 'react';
+import { COLORS } from '@/lib/theme';
 
-const COLORS = {
-  terracotta: '#C8622A',
-  bark: '#3D2B1A',
-  sand: '#F2EAD8',
-  cream: '#FAF6F0',
-  smoke: '#8B7B6E',
-};
 
 const menuItems = [
   { href: '/admin', icon: LayoutDashboard, label: 'Dashboard', roles: ['admin', 'usher', 'viewer'] },

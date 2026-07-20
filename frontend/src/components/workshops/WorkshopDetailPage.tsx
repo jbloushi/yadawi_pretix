@@ -4,28 +4,20 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from '@/lib/i18n';
+import { useBranch } from '@/lib/branch';
+import { track } from '@/lib/analytics';
 import { useCart } from '@/lib/cart';
 import { Calendar, MapPin, Clock, Minus, Plus, Check, Loader2, ArrowRight, Sparkles, Flame, Zap, Award, ShoppingCart, Star, Share2 } from 'lucide-react';
 import { formatDate, formatTime, formatCurrency, getLocalizedName } from '@/lib/utils';
 import type { PretixEvent, PretixItem } from '@/types/pretix';
 
 const icons = [Flame, Zap, Sparkles, Award];
+const verifiedReviews: Array<{ name: string; text: string; stars: number }> = [];
 
-const defaultReviews = [
-  { name: 'Lulwa M.', text: 'Absolutely loved every minute! The instructor was amazing.', stars: 5 },
-  { name: 'Fatima K.', text: 'The session was so therapeutic and creative.', stars: 5 },
-  { name: 'Nora A.', text: 'Came as a beginner, left feeling like an artist!', stars: 5 },
-];
-
-const defaultSyllabus = [
-  'Foundational techniques and safety practices',
-  'How to select and work with materials',
-  'Design principles specific to this craft',
-  'Take home your finished creation',
-];
-
-export function WorkshopDetailPage({ slug }: { slug: string }) {
+export function WorkshopDetailPage({ slug, initialMarket }: { slug: string; initialMarket?: 'KWT' | 'KSA' }) {
   const { t, locale } = useTranslation();
+  const { branch, setBranch } = useBranch();
+  const effectiveMarket = initialMarket || branch;
   const router = useRouter();
   const { addItem } = useCart();
   const [event, setEvent] = useState<PretixEvent | null>(null);
@@ -37,18 +29,23 @@ export function WorkshopDetailPage({ slug }: { slug: string }) {
   const [showEnrollModal, setShowEnrollModal] = useState(false);
   const [modalQuantity, setModalQuantity] = useState(1);
   const [eventDetails, setEventDetails] = useState({
-    duration: '3 hours',
-    instructorName: 'Sara Al-Rashidi',
-    instructorExperience: 'Master Glass Artist · 12 yrs experience',
-    syllabus: defaultSyllabus,
-    description: "Discover the ancient art of glass fusing in this hands-on workshop. You'll learn to select, cut, and arrange glass pieces before fusing them together in our professional kiln to create stunning artistic pieces.",
+    duration: '',
+    instructorName: '',
+    instructorExperience: '',
+    syllabus: [] as string[],
+    description: '',
     coverImage: ''
   });
 
   useEffect(() => {
     async function fetchData() {
+      setLoading(true);
+      setError(null);
+      setEvent(null);
+      setItems([]);
+      setEventDetails({ duration: '', instructorName: '', instructorExperience: '', syllabus: [], description: '', coverImage: '' });
       try {
-        const eventsRes = await fetch('/api/pretix/events?debug=1');
+        const eventsRes = await fetch(`/api/pretix/events?market=${effectiveMarket}`);
         const eventsData = await eventsRes.json();
         if (!eventsRes.ok) {
           console.error('Workshop detail API debug payload:', eventsData);
@@ -61,6 +58,7 @@ export function WorkshopDetailPage({ slug }: { slug: string }) {
         }
 
         setEvent(foundEvent);
+        track('workshop_viewed', { market: effectiveMarket, workshop_id: foundEvent.slug, currency: foundEvent.currency });
 
         // Parse extended details from description if it is JSON
         try {
@@ -71,11 +69,11 @@ export function WorkshopDetailPage({ slug }: { slug: string }) {
             const parsed = JSON.parse(descStr);
             setEventDetails(prev => ({
               ...prev,
-              description: parsed.description || parsed.about || prev.description,
-              duration: parsed.duration || prev.duration,
-              instructorName: parsed.instructorName || parsed.instructor || prev.instructorName,
-              instructorExperience: parsed.instructorExperience || prev.instructorExperience,
-              syllabus: Array.isArray(parsed.syllabus) ? parsed.syllabus : (parsed.syllabus ? parsed.syllabus.split('\n') : prev.syllabus),
+              description: parsed.description || parsed.about || '',
+              duration: parsed.duration || '',
+              instructorName: parsed.instructorName || parsed.instructor || '',
+              instructorExperience: parsed.instructorExperience || '',
+              syllabus: Array.isArray(parsed.syllabus) ? parsed.syllabus : (parsed.syllabus ? parsed.syllabus.split('\n') : []),
             }));
           } else if (descStr) {
             setEventDetails(prev => ({ ...prev, description: descStr }));
@@ -84,7 +82,7 @@ export function WorkshopDetailPage({ slug }: { slug: string }) {
           // It was just a normal string description or missing
         }
 
-        const itemsRes = await fetch(`/api/pretix/items?slug=${slug}&organizer=${foundEvent.organizer}`);
+        const itemsRes = await fetch(`/api/pretix/events/${slug}/items?organizer=${foundEvent.organizer}`);
         if (itemsRes.ok) {
           const itemsData = await itemsRes.json();
           setItems(itemsData.results || []);
@@ -97,7 +95,11 @@ export function WorkshopDetailPage({ slug }: { slug: string }) {
       }
     }
     fetchData();
-  }, [slug]);
+  }, [slug, effectiveMarket]);
+
+  useEffect(() => {
+    if (initialMarket && initialMarket !== branch) setBranch(initialMarket);
+  }, [initialMarket, branch, setBranch]);
 
   const handleItemSelect = (itemId: number) => {
     setSelectedItems(prev => {
@@ -140,7 +142,7 @@ export function WorkshopDetailPage({ slug }: { slug: string }) {
       price: parseFloat(item.default_price || item.price || '0'),
       quantity: modalQuantity,
       currency: event.currency || (event.organizer === 'yadawi' ? 'KWD' : 'SAR'),
-      date: event.date_from,
+      date: event.date_from || '',
     });
 
     setAddedToCart(true);
@@ -172,6 +174,9 @@ export function WorkshopDetailPage({ slug }: { slug: string }) {
 
   const eventName = getLocalizedName(event.name, locale);
   const currency = event.currency || 'SAR';
+  const tags = [event.category, event.skillLevel, event.ageGroup, event.language].filter(Boolean) as string[];
+  const knownAvailability = items.map(item => item.quantity_left).filter((value): value is number => typeof value === 'number');
+  const seatsLeft = knownAvailability.length ? knownAvailability.reduce((sum, value) => sum + value, 0) : null;
   const IconComponent = icons[event.id % icons.length];
 
   return (
@@ -238,6 +243,7 @@ export function WorkshopDetailPage({ slug }: { slug: string }) {
         {/* Badges */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
           <span style={{
+            display: 'inline-flex',
             padding: '4px 10px',
             borderRadius: 20,
             fontSize: 10,
@@ -250,6 +256,7 @@ export function WorkshopDetailPage({ slug }: { slug: string }) {
             Workshop
           </span>
           <span style={{
+            display: event.skillLevel ? 'inline-flex' : 'none',
             padding: '4px 10px',
             borderRadius: 20,
             fontSize: 10,
@@ -259,7 +266,7 @@ export function WorkshopDetailPage({ slug }: { slug: string }) {
             background: 'rgba(212,148,26,0.12)',
             color: '#D4941A',
           }}>
-            Beginner
+            {event.skillLevel}
           </span>
         </div>
 
@@ -276,7 +283,7 @@ export function WorkshopDetailPage({ slug }: { slug: string }) {
         </h1>
 
         {/* Rating */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 16 }}>
+        <div aria-hidden="true" style={{ display: 'none' }}>
           <span style={{ color: '#F5A623', fontSize: 13, letterSpacing: 1 }}>★★★★★</span>
           <span style={{ fontSize: 13, fontWeight: 700, color: '#3D2B1A' }}>4.9</span>
           <span style={{ fontSize: 12, color: '#8B7B6E' }}>(42 reviews)</span>
@@ -290,21 +297,21 @@ export function WorkshopDetailPage({ slug }: { slug: string }) {
           </div>
           <div style={{ background: '#F2EAD8', borderRadius: 14, padding: 12 }}>
             <div style={{ fontSize: 9, color: '#8B7B6E', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>📍 Location</div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#3D2B1A' }}>{event.location || 'Riyadh'}</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#3D2B1A' }}>{event.location || 'Location to be confirmed'}</div>
           </div>
           <div style={{ background: '#F2EAD8', borderRadius: 14, padding: 12 }}>
             <div style={{ fontSize: 9, color: '#8B7B6E', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>⏱ Duration</div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#3D2B1A' }}>{eventDetails.duration}</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#3D2B1A' }}>{eventDetails.duration || 'Not specified'}</div>
           </div>
           <div style={{ background: '#F2EAD8', borderRadius: 14, padding: 12 }}>
             <div style={{ fontSize: 9, color: '#8B7B6E', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>👥 Spots Left</div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#C8622A' }}>8 spots</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#C8622A' }}>{seatsLeft === null ? 'Check ticket availability' : `${seatsLeft} available`}</div>
           </div>
         </div>
 
         {/* Tags */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 20 }}>
-          {['Glass Art', 'Kiln Work', 'Beginner Friendly', 'Materials Included'].map(tag => (
+          {tags.map(tag => (
             <span key={tag} style={{
               padding: '4px 10px',
               borderRadius: 20,
@@ -319,7 +326,7 @@ export function WorkshopDetailPage({ slug }: { slug: string }) {
         </div>
 
         {/* About */}
-        <div style={{ marginBottom: 20 }}>
+        <div style={{ marginBottom: eventDetails.description ? 20 : 0, display: eventDetails.description ? 'block' : 'none' }}>
           <h3 style={{
             fontFamily: "'Playfair Display', serif",
             fontSize: 16,
@@ -335,7 +342,7 @@ export function WorkshopDetailPage({ slug }: { slug: string }) {
         </div>
 
         {/* What You'll Learn */}
-        <div style={{ marginBottom: 20 }}>
+        <div style={{ marginBottom: eventDetails.syllabus.length ? 20 : 0, display: eventDetails.syllabus.length ? 'block' : 'none' }}>
           <h3 style={{
             fontFamily: "'Playfair Display', serif",
             fontSize: 16,
@@ -368,7 +375,7 @@ export function WorkshopDetailPage({ slug }: { slug: string }) {
         </div>
 
         {/* Instructor */}
-        <div style={{ marginBottom: 20 }}>
+        <div style={{ marginBottom: eventDetails.instructorName ? 20 : 0, display: eventDetails.instructorName ? 'block' : 'none' }}>
           <h3 style={{
             fontFamily: "'Playfair Display', serif",
             fontSize: 16,
@@ -395,13 +402,12 @@ export function WorkshopDetailPage({ slug }: { slug: string }) {
             <div>
               <div style={{ fontWeight: 700, fontSize: 14, color: '#3D2B1A', marginBottom: 2 }}>{eventDetails.instructorName}</div>
               <div style={{ fontSize: 11, color: '#8B7B6E', marginBottom: 6 }}>{eventDetails.instructorExperience}</div>
-              <div style={{ display: 'flex', gap: 4, color: '#F5A623', fontSize: 11 }}>★★★★★ <span style={{ color: '#8B7B6E' }}>4.9 · 120 students</span></div>
             </div>
           </div>
         </div>
 
         {/* Reviews */}
-        <div style={{ marginBottom: 20 }}>
+        <div aria-hidden="true" style={{ display: 'none' }}>
           <h3 style={{
             fontFamily: "'Playfair Display', serif",
             fontSize: 16,
@@ -412,7 +418,7 @@ export function WorkshopDetailPage({ slug }: { slug: string }) {
             Reviews
           </h3>
           <div style={{ display: 'flex', gap: 12, overflowX: 'auto', scrollbarWidth: 'none', marginBottom: 20 }}>
-            {defaultReviews.map((r, i) => (
+            {verifiedReviews.map((r, i) => (
               <div key={i} style={{
                 flexShrink: 0,
                 width: 200,
@@ -450,10 +456,15 @@ export function WorkshopDetailPage({ slug }: { slug: string }) {
                 const isSelected = selectedItems[item.id] > 0;
 
                 return (
-                  <div
+                  <button
+                    type="button"
                     key={item.id}
-                    onClick={() => handleItemSelect(item.id)}
+                    onClick={() => item.quantity_left !== 0 && handleItemSelect(item.id)}
+                    aria-pressed={isSelected}
+                    disabled={item.quantity_left === 0}
                     style={{
+                      width: '100%',
+                      textAlign: 'start',
                       border: `2px solid ${isSelected ? '#C8622A' : '#F2EAD8'}`,
                       borderRadius: 16,
                       padding: 16,
@@ -470,15 +481,15 @@ export function WorkshopDetailPage({ slug }: { slug: string }) {
                           </h4>
                           {isSelected && <Check size={16} color="#C8622A" />}
                         </div>
-                        <p style={{ fontSize: 12, marginTop: 4, color: '#8B7B6E' }}>General admission</p>
+                        {(item.description || item.quantity_left === 0) && <p style={{ fontSize: 12, marginTop: 4, color: '#8B7B6E' }}>{item.quantity_left === 0 ? 'Sold out' : item.description}</p>}
                       </div>
                       <div style={{ textAlign: 'right' }}>
                         <p style={{ fontSize: 18, fontWeight: 700, color: '#C8622A' }}>
-                          {formatCurrency(price, currency)}
+                          {formatCurrency(price, currency, locale)}
                         </p>
                       </div>
                     </div>
-                  </div>
+                  </button>
                 );
               })}
             </div>

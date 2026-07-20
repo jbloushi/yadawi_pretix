@@ -5,15 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useCart } from '@/lib/cart';
 import { Trash2, Minus, Plus, ArrowRight, ShoppingCart } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
+import { COLORS } from '@/lib/theme';
 
-const COLORS = {
-  terracotta: '#C8622A',
-  ember: '#E8873A',
-  bark: '#3D2B1A',
-  sand: '#F2EAD8',
-  cream: '#FAF6F0',
-  smoke: '#8B7B6E',
-};
 
 export default function CartPage() {
   const router = useRouter();
@@ -64,10 +57,10 @@ export default function CartPage() {
 
   const subtotal = total;
   const currency = items[0]?.currency || 'SAR';
-  // KWD has no VAT; SA applies 15% VAT
-  const vatRate = currency === 'KWD' ? 0 : 0.15;
-  const vat = Math.round(subtotal * vatRate);
-  const totalWithVat = subtotal + vat;
+  // Pretix prices are all-inclusive (no tax rule) — VAT is included in the price,
+  // not added on top, so the total matches the Pretix order.
+  const vat = 0;
+  const totalWithVat = subtotal;
 
   return (
     <div style={{ backgroundColor: COLORS.cream, minHeight: '100vh' }}>
@@ -94,16 +87,16 @@ export default function CartPage() {
               <div style={{ fontWeight: 700, fontSize: 14, color: COLORS.bark, marginBottom: 3 }}>{item.eventName}</div>
               <div style={{ fontSize: 11, color: COLORS.smoke, marginBottom: 8 }}>{item.itemName}</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <button onClick={() => updateQuantity(item.eventSlug, item.itemId, item.quantity - 1)} style={{
+                <button onClick={() => updateQuantity(item.eventSlug, item.itemId, item.quantity - 1, item.subeventId ?? null)} style={{
                   width: 28, height: 28, borderRadius: 8, background: COLORS.sand, border: 'none',
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: COLORS.bark
                 }}>−</button>
                 <span style={{ width: 20, textAlign: 'center', fontWeight: 700, color: COLORS.bark, fontSize: 14 }}>{item.quantity}</span>
-                <button onClick={() => updateQuantity(item.eventSlug, item.itemId, item.quantity + 1)} style={{
+                <button onClick={() => updateQuantity(item.eventSlug, item.itemId, item.quantity + 1, item.subeventId ?? null)} style={{
                   width: 28, height: 28, borderRadius: 8, background: COLORS.sand, border: 'none',
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: COLORS.bark
                 }}>+</button>
-                <button onClick={() => removeItem(item.eventSlug, item.itemId)} style={{
+                <button onClick={() => removeItem(item.eventSlug, item.itemId, item.subeventId ?? null)} style={{
                   marginLeft: 8, background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: COLORS.smoke
                 }}>🗑</button>
               </div>
@@ -121,8 +114,8 @@ export default function CartPage() {
           <span style={{ fontSize: 13, fontWeight: 600, color: COLORS.bark }}>{formatCurrency(subtotal, currency)}</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid rgba(61,43,26,0.08)' }}>
-          <span style={{ fontSize: 13, color: COLORS.smoke }}>{currency === 'KWD' ? 'VAT' : 'VAT (15%)'}</span>
-          <span style={{ fontSize: 13, fontWeight: 600, color: COLORS.bark }}>{vat > 0 ? formatCurrency(vat, currency) : 'N/A'}</span>
+          <span style={{ fontSize: 13, color: COLORS.smoke }}>VAT</span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: COLORS.bark }}>Included</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 10 }}>
           <span style={{ fontSize: 15, fontWeight: 700, color: COLORS.bark }}>Total</span>

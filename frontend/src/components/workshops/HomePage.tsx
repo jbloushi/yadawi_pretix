@@ -1,704 +1,106 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { ArrowRight, CalendarDays, MapPin, Package, Sparkles, Users } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
 import { useBranch } from '@/lib/branch';
-import { Award, Flame, Zap, Sparkles, Gem } from 'lucide-react';
-import { formatDate, formatCurrency, getLocalizedName } from '@/lib/utils';
+import { formatCurrency, formatDate, getLocalizedName } from '@/lib/utils';
+import { track } from '@/lib/analytics';
 import type { PretixEvent } from '@/types/pretix';
 
-const icons: Record<string, React.ComponentType<{ className?: string }>> = {
-  Flame: Flame,
-  Zap: Zap,
-  Sparkles: Sparkles,
-  Award: Award,
-  Gem: Gem,
-};
-
-const categories = [
-  { label: 'All', icon: '🏠' },
-  { label: 'Glass', icon: '🔵' },
-  { label: 'Jewelry', icon: '💎' },
-  { label: 'Clay', icon: '🏺' },
-  { label: 'Textile', icon: '🧶' },
-  { label: 'Wood', icon: '🪵' },
-];
-
-const features = [
-  { icon: '🏺', title: 'Expert Artisans', desc: 'Learn from skilled professionals' },
-  { icon: '🤝', title: 'Community', desc: 'Connect with fellow makers' },
-  { icon: '📦', title: 'Quality Materials', desc: 'Premium tools & supplies' },
-];
-
-interface EventWithPrice extends PretixEvent {
-  minPrice?: number;
-}
-
 export function HomePage() {
-  const { t, locale } = useTranslation();
+  const { locale } = useTranslation();
   const { branch } = useBranch();
-  const [activeCat, setActiveCat] = useState(0);
-  const [events, setEvents] = useState<EventWithPrice[]>([]);
+  const [events, setEvents] = useState<PretixEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    async function fetchEvents() {
-      try {
-        const res = await fetch('/api/pretix/events?debug=1');
-        const data = await res.json();
-        if (!res.ok) {
-          console.error('Home API debug payload:', data);
-          throw new Error(data.error || 'Failed to fetch');
-        }
+    const controller = new AbortController();
+    setLoading(true);
+    setError(false);
+    fetch(`/api/pretix/events?market=${branch}`, { signal: controller.signal })
+      .then(async response => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error);
         setEvents(data.results || []);
-      } catch (err) {
-        console.error('Error fetching events:', err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchEvents();
-  }, []);
+      })
+      .catch(error => { if (error.name !== 'AbortError') setError(true); })
+      .finally(() => setLoading(false));
+    return () => controller.abort();
+  }, [branch]);
 
-  /** Filter by the globally-selected branch */
-  const displayEvents = events.filter((e) => {
-    if (branch === 'KWT') return e.organizer === 'yadawi';
-    return e.organizer === 'yadawi-sa';
-  });
+  const categories = useMemo(() => Array.from(new Set(events.map(event => event.category).filter(Boolean))) as string[], [events]);
+  const featured = events[0];
+  const isArabic = locale === 'ar';
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#FAF6F0' }}>
-      {/* HERO */}
-      <div style={{
-        margin: '0 20px 20px',
-        borderRadius: 24,
-        background: 'linear-gradient(135deg, #3D2B1A 0%, #7A4A2E 50%, #C8622A 100%)',
-        padding: '28px 24px 24px',
-        position: 'relative',
-        overflow: 'hidden',
-        minHeight: 200,
-      }}>
-        <div style={{
-          position: 'absolute',
-          right: -20,
-          top: -20,
-          width: 160,
-          height: 160,
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(245,166,35,0.3) 0%, transparent 70%)',
-        }} />
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 5,
-            background: 'rgba(255,255,255,0.15)',
-            border: '1px solid rgba(255,255,255,0.25)',
-            borderRadius: 20,
-            padding: '4px 10px',
-            fontSize: 10,
-            color: 'rgba(255,255,255,0.9)',
-            letterSpacing: 1,
-            textTransform: 'uppercase',
-            marginBottom: 12,
-          }}>
-            ✦ Featured This Week
+    <main className="home-redesign">
+      <section className="home-hero" aria-labelledby="home-title">
+        <div className="home-hero-copy">
+          <span className="eyebrow"><Sparkles size={14} /> {isArabic ? 'تجارب إبداعية عملية' : 'Hands-on creative experiences'}</span>
+          <h1 id="home-title">{isArabic ? 'اكتشف حرفة. اصنع شيئاً. واصل الإبداع.' : 'Discover a craft. Make something. Keep creating.'}</h1>
+          <p>{isArabic ? 'ورش عملية وأدوات مختارة بعناية للمبدعين في الكويت والسعودية.' : 'Book a hands-on workshop, then find the right tools and kits to continue at home.'}</p>
+          <div className="hero-actions">
+            <Link href="/workshops" className="hero-primary">{isArabic ? 'ابحث عن ورشة' : 'Find a workshop'} <ArrowRight size={17} /></Link>
+            <Link href="/shop" className="hero-secondary">{isArabic ? 'تسوق مستلزمات الحرف' : 'Shop craft supplies'}</Link>
           </div>
-          <div style={{
-            fontFamily: "'Playfair Display', serif",
-            fontSize: 28,
-            fontWeight: 900,
-            color: 'white',
-            lineHeight: 1.2,
-            marginBottom: 8,
-          }}>
-            Glass Fusing<br />Masterclass
-          </div>
-          <div style={{
-            fontSize: 13,
-            color: 'rgba(255,255,255,0.7)',
-            lineHeight: 1.5,
-            marginBottom: 20,
-          }}>
-            Transform molten glass into wearable art.<br />Limited spots — April 1, Riyadh.
-          </div>
-          <Link href={`/workshops/${displayEvents[0]?.slug || 'glass-fusing'}`} style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 8,
-            background: '#F5A623',
-            color: '#3D2B1A',
-            borderRadius: 14,
-            padding: '11px 20px',
-            fontWeight: 700,
-            fontSize: 13,
-            textDecoration: 'none',
-          }}>
-            Explore Workshop →
+          <small>{branch === 'KWT' ? (isArabic ? 'نعرض توفر وأسعار الكويت' : 'Showing Kuwait availability and KWD prices') : (isArabic ? 'نعرض توفر وأسعار السعودية' : 'Showing Saudi availability and SAR prices')}</small>
+        </div>
+        {featured && (
+          <Link href={`/workshops/${featured.slug}?market=${branch}`} className="featured-workshop">
+            <div className="featured-image" style={featured.coverImage ? { backgroundImage: `url(${featured.coverImage})` } : undefined}>
+              {!featured.coverImage && <Sparkles size={42} aria-hidden="true" />}
+              <span>{isArabic ? 'الأقرب موعداً' : 'Next available'}</span>
+            </div>
+            <div className="featured-copy">
+              <h2>{getLocalizedName(featured.name, locale)}</h2>
+              <div><CalendarDays size={15} /> {formatDate(featured.date_from, locale)}</div>
+              {featured.location && <div><MapPin size={15} /> {featured.location}</div>}
+              <strong>{featured.minPrice !== undefined ? `${isArabic ? 'من ' : 'From '}${formatCurrency(featured.minPrice, featured.currency, locale)}` : (isArabic ? 'اعرض الخيارات' : 'View options')}</strong>
+            </div>
           </Link>
+        )}
+      </section>
+
+      <section className="home-section" aria-labelledby="upcoming-title">
+        <div className="section-heading">
+          <div><span className="eyebrow">{isArabic ? 'متاح قريباً' : 'Available soon'}</span><h2 id="upcoming-title">{isArabic ? 'اختر ما ستصنعه' : 'Choose what you’ll make'}</h2></div>
+          <Link href="/workshops">{isArabic ? 'عرض الكل' : 'View all'} <ArrowRight size={15} /></Link>
         </div>
-        <div style={{
-          position: 'absolute',
-          right: 20,
-          bottom: 20,
-          fontSize: 60,
-          opacity: 0.15,
-        }}>
-          🔥
-        </div>
+        {loading ? <div className="workshop-status">{isArabic ? 'جاري تحميل الورش…' : 'Loading current workshops…'}</div>
+          : error ? <div className="workshop-status" role="alert">{isArabic ? 'تعذر تحميل الورش الآن. حاول مرة أخرى.' : 'Workshops are temporarily unavailable. Please try again.'}</div>
+          : events.length === 0 ? <div className="workshop-status">{isArabic ? 'لا توجد ورش قادمة حالياً. تحقق مرة أخرى قريباً.' : 'No upcoming workshops are published for this market yet.'}</div>
+          : <div className="home-workshop-grid">{events.slice(0, 6).map(event => <HomeWorkshopCard key={event.slug} event={event} locale={locale} market={branch} />)}</div>}
+      </section>
+
+      {categories.length > 0 && (
+        <section className="home-section" aria-labelledby="craft-title">
+          <div className="section-heading"><div><span className="eyebrow">{isArabic ? 'استكشف' : 'Explore'}</span><h2 id="craft-title">{isArabic ? 'تسوق حسب الحرفة' : 'Browse by craft'}</h2></div></div>
+          <div className="craft-links">{categories.map(category => <Link key={category} href={`/workshops?category=${encodeURIComponent(category)}`}>{category}<ArrowRight size={16} /></Link>)}</div>
+        </section>
+      )}
+
+      <section className="journey-band" aria-label={isArabic ? 'رحلتك الإبداعية' : 'Your creative journey'}>
+        <div><Users /><h2>{isArabic ? 'اصنعها معنا' : 'Make it with us'}</h2><p>{isArabic ? 'اختر ورشة مناسبة لمستواك وموعدك.' : 'Choose a workshop that fits your level and schedule.'}</p></div>
+        <div><Package /><h2>{isArabic ? 'واصلها في المنزل' : 'Continue at home'}</h2><p>{isArabic ? 'اعثر على الأدوات والمواد المرتبطة بتجربتك.' : 'Find the tools and materials connected to your experience.'}</p></div>
+        <div><Sparkles /><h2>{isArabic ? 'عد للمستوى التالي' : 'Return for the next level'}</h2><p>{isArabic ? 'طوّر مهارتك مع تجربة جديدة.' : 'Build your skills with your next creative experience.'}</p></div>
+      </section>
+    </main>
+  );
+}
+
+function HomeWorkshopCard({ event, locale, market }: { event: PretixEvent; locale: string; market: 'KWT' | 'KSA' }) {
+  return (
+    <Link href={`/workshops/${event.slug}?market=${market}`} className="home-workshop-card" onClick={() => track('workshop_viewed', { market, workshop_id: event.slug, currency: event.currency })}>
+      <div className="card-image" style={event.coverImage ? { backgroundImage: `url(${event.coverImage})` } : undefined}>{!event.coverImage && <Sparkles size={28} />}</div>
+      <div className="card-copy">
+        <h3>{getLocalizedName(event.name, locale)}</h3>
+        <p><CalendarDays size={14} /> {formatDate(event.date_from, locale)}</p>
+        {event.location && <p><MapPin size={14} /> {event.location}</p>}
+        <div>{event.skillLevel && <span>{event.skillLevel}</span>}<strong>{event.minPrice !== undefined ? formatCurrency(event.minPrice, event.currency, locale) : (locale === 'ar' ? 'التفاصيل' : 'Details')}</strong></div>
       </div>
-
-      {/* SECTION HEADER */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'flex-end',
-        padding: '0 20px 14px',
-      }}>
-        <div style={{
-          fontFamily: "'Playfair Display', serif",
-          fontSize: 20,
-          fontWeight: 700,
-          color: '#3D2B1A',
-        }}>
-          Browse
-        </div>
-      </div>
-
-      {/* CATEGORY SCROLL */}
-      <div style={{
-        display: 'flex',
-        gap: 10,
-        padding: '0 20px 20px',
-        overflowX: 'auto',
-        scrollbarWidth: 'none',
-      }}>
-        {categories.map((cat, i) => (
-          <div
-            key={i}
-            onClick={() => setActiveCat(i)}
-            style={{
-              flexShrink: 0,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 6,
-              cursor: 'pointer',
-            }}
-          >
-            <div style={{
-              width: 58,
-              height: 58,
-              borderRadius: 18,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 24,
-              transition: 'all 0.2s',
-              background: activeCat === i ? '#C8622A' : '#F2EAD8',
-              boxShadow: activeCat === i ? '0 8px 20px rgba(200,98,42,0.35)' : 'none',
-            }}>
-              {cat.icon}
-            </div>
-            <span style={{
-              fontSize: 10,
-              fontWeight: 600,
-              color: activeCat === i ? '#C8622A' : '#8B7B6E',
-              letterSpacing: 0.3,
-              whiteSpace: 'nowrap',
-            }}>
-              {cat.label}
-            </span>
-          </div>
-        ))}
-      </div>
-
-      {/* UPCOMING EVENTS */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'flex-end',
-        padding: '0 20px 14px',
-      }}>
-        <div style={{
-          fontFamily: "'Playfair Display', serif",
-          fontSize: 20,
-          fontWeight: 700,
-          color: '#3D2B1A',
-        }}>
-          Upcoming Events
-        </div>
-        <Link href="/workshops" style={{
-          fontSize: 12,
-          color: '#C8622A',
-          fontWeight: 600,
-          textDecoration: 'none',
-        }}>
-          View all
-        </Link>
-      </div>
-
-      <div style={{
-        display: 'flex',
-        gap: 14,
-        padding: '0 20px 24px',
-        overflowX: 'auto',
-        scrollbarWidth: 'none',
-      }}>
-        {loading ? (
-          <div style={{ padding: 20 }}>Loading...</div>
-        ) : displayEvents.slice(0, 4).map((event, idx) => {
-          const eventName = getLocalizedName(event.name, locale);
-          const IconComponent = icons[Object.keys(icons)[idx % 4]];
-          const price = event.minPrice ? formatCurrency(event.minPrice, event.currency) : 'View Details';
-
-          return (
-            <Link
-              key={event.slug}
-              href={`/workshops/${event.slug}`}
-              style={{
-                flexShrink: 0,
-                width: 240,
-                borderRadius: 20,
-                background: 'white',
-                overflow: 'hidden',
-                cursor: 'pointer',
-                textDecoration: 'none',
-                boxShadow: '0 4px 20px rgba(61,43,26,0.08)',
-              }}
-            >
-              <div style={{
-                height: 120,
-                background: event.coverImage
-                  ? `url(${event.coverImage}) center/cover no-repeat`
-                  : `linear-gradient(135deg, ${['#7A4A2E', '#C8622A', '#E8873A', '#4FC3F7'][idx % 4]} 0%, ${['#C8622A', '#E8873A', '#FFB74D', '#81D4FA'][idx % 4]} 100%)`,
-                position: 'relative',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 48,
-              }}>
-                {!event.coverImage && ['🔥', '✨', '⚡', '🏆'][idx % 4]}
-                {/* Workshop label */}
-                <div style={{
-                  position: 'absolute',
-                  top: 10,
-                  left: 10,
-                  background: '#F5A623',
-                  color: '#3D2B1A',
-                  borderRadius: 8,
-                  padding: '3px 8px',
-                  fontSize: 9,
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.5,
-                }}>
-                  Workshop
-                </div>
-                {/* Branch flag badge */}
-                <div style={{
-                  position: 'absolute',
-                  top: 10,
-                  right: 10,
-                  background: 'rgba(255,255,255,0.92)',
-                  borderRadius: 8,
-                  padding: '4px 6px',
-                  backdropFilter: 'blur(4px)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
-                  <img src={event.organizer === 'yadawi' ? 'https://flagcdn.com/w20/kw.png' : 'https://flagcdn.com/w20/sa.png'} alt={event.organizer === 'yadawi' ? 'Kuwait' : 'Saudi Arabia'} style={{ width: 14, height: 'auto', borderRadius: 2 }} />
-                </div>
-                <div style={{
-                  position: 'absolute',
-                  bottom: 10,
-                  right: 10,
-                  background: 'rgba(0,0,0,0.6)',
-                  color: 'white',
-                  borderRadius: 10,
-                  padding: '4px 10px',
-                  fontSize: 12,
-                  fontWeight: 700,
-                  backdropFilter: 'blur(4px)',
-                }}>
-                  {price}
-                </div>
-              </div>
-              <div style={{ padding: 14 }}>
-                <div style={{
-                  fontFamily: "'Playfair Display', serif",
-                  fontSize: 15,
-                  fontWeight: 700,
-                  color: '#3D2B1A',
-                  marginBottom: 6,
-                }}>
-                  {eventName}
-                </div>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 4,
-                  fontSize: 11,
-                  color: '#8B7B6E',
-                  marginBottom: 3,
-                }}>
-                  📅 {formatDate(event.date_from, locale)}
-                </div>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 4,
-                  fontSize: 11,
-                  color: '#8B7B6E',
-                  marginBottom: 12,
-                }}>
-                  📍 {event.location || 'Riyadh'}
-                </div>
-                <button style={{
-                  width: '100%',
-                  marginTop: 12,
-                  padding: '9px',
-                  background: 'linear-gradient(135deg, #C8622A, #E8873A)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: 12,
-                  fontWeight: 700,
-                  fontSize: 12,
-                  cursor: 'pointer',
-                  letterSpacing: 0.3,
-                }}>
-                  View & Enroll →
-                </button>
-              </div>
-            </Link>
-          );
-        })}
-      </div>
-
-      {/* FEATURED GRID */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'flex-end',
-        padding: '0 20px 14px',
-      }}>
-        <div style={{
-          fontFamily: "'Playfair Display', serif",
-          fontSize: 20,
-          fontWeight: 700,
-          color: '#3D2B1A',
-        }}>
-          Popular Classes
-        </div>
-      </div>
-
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: 12,
-        padding: '0 20px 24px',
-      }}>
-        {displayEvents.slice(0, 4).map((event, idx) => {
-          const eventName = getLocalizedName(event.name, locale);
-          const price = event.minPrice ? formatCurrency(event.minPrice, event.currency) : '';
-
-          return (
-            <Link
-              key={`feat-${event.slug}`}
-              href={`/workshops/${event.slug}`}
-              style={{
-                borderRadius: 18,
-                background: 'white',
-                overflow: 'hidden',
-                cursor: 'pointer',
-                textDecoration: 'none',
-                boxShadow: '0 4px 16px rgba(61,43,26,0.07)',
-              }}
-            >
-              <div style={{
-                height: 100,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 36,
-                position: 'relative',
-                background: event.coverImage
-                  ? `url(${event.coverImage}) center/cover no-repeat`
-                  : `linear-gradient(135deg, ${['#7EB8D0', '#C4956A', '#FF7043', '#8D6E63'][idx % 4]} 0%, ${['#A8D4E0', '#E8B88A', '#FF9800', '#BCAAA4'][idx % 4]} 100%)`,
-              }}>
-                {!event.coverImage && ['🔵', '✨', '⚡', '🏆'][idx % 4]}
-                {/* Branch flag */}
-                <div style={{
-                  position: 'absolute',
-                  top: 6,
-                  right: 8,
-                  background: 'rgba(255,255,255,0.9)',
-                  borderRadius: 6,
-                  padding: '3px 5px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
-                  <img src={event.organizer === 'yadawi' ? 'https://flagcdn.com/w20/kw.png' : 'https://flagcdn.com/w20/sa.png'} alt={event.organizer === 'yadawi' ? 'Kuwait' : 'Saudi Arabia'} style={{ width: 12, height: 'auto', borderRadius: 2 }} />
-                </div>
-              </div>
-              <div style={{ padding: '10px 12px 12px' }}>
-                <div style={{
-                  fontSize: 9,
-                  color: '#8B7B6E',
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.5,
-                  marginBottom: 4,
-                }}>
-                  Workshop
-                </div>
-                <div style={{
-                  fontSize: 12,
-                  fontWeight: 700,
-                  color: '#3D2B1A',
-                  marginBottom: 3,
-                  lineHeight: 1.3,
-                }}>
-                  {eventName}
-                </div>
-                <div style={{
-                  fontSize: 11,
-                  color: '#C8622A',
-                  fontWeight: 700,
-                }}>
-                  {price}
-                </div>
-              </div>
-            </Link>
-          );
-        })}
-      </div>
-
-      {/* MEMBERSHIP BANNER */}
-      <div style={{
-        margin: '0 20px 24px',
-        borderRadius: 20,
-        background: 'linear-gradient(135deg, #3D2B1A 0%, #5D3A22 100%)',
-        padding: '22px 20px',
-        position: 'relative',
-        overflow: 'hidden',
-      }}>
-        <div style={{
-          position: 'absolute',
-          right: -10,
-          top: -20,
-          fontSize: 120,
-          color: 'rgba(212,148,26,0.1)',
-        }}>
-          ◆
-        </div>
-        <div style={{
-          fontFamily: "'Playfair Display', serif",
-          fontSize: 20,
-          fontWeight: 900,
-          color: 'white',
-          marginBottom: 6,
-        }}>
-          Torch Time<br />Membership ✦
-        </div>
-        <div style={{
-          fontSize: 12,
-          color: 'rgba(255,255,255,0.65)',
-          lineHeight: 1.5,
-          marginBottom: 16,
-        }}>
-          Unlimited studio access, exclusive workshops, and priority booking for one monthly fee.
-        </div>
-        <div style={{
-          display: 'flex',
-          gap: 8,
-          flexWrap: 'wrap',
-          marginBottom: 16,
-        }}>
-          {['∞ Studio Access', 'Early Booking', 'Member Pricing', 'Guest Passes'].map(perk => (
-            <div key={perk} style={{
-              background: 'rgba(255,255,255,0.1)',
-              border: '1px solid rgba(255,255,255,0.2)',
-              borderRadius: 20,
-              padding: '4px 10px',
-              fontSize: 10,
-              color: 'rgba(255,255,255,0.85)',
-              fontWeight: 500,
-            }}>
-              {perk}
-            </div>
-          ))}
-        </div>
-        <button style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 6,
-          background: '#F5A623',
-          color: '#3D2B1A',
-          borderRadius: 12,
-          padding: '10px 18px',
-          fontWeight: 700,
-          fontSize: 12,
-          border: 'none',
-          cursor: 'pointer',
-        }}>
-          From 200 SAR/mo →
-        </button>
-      </div>
-
-      {/* WHY US */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'flex-end',
-        padding: '0 20px 14px',
-      }}>
-        <div style={{
-          fontFamily: "'Playfair Display', serif",
-          fontSize: 20,
-          fontWeight: 700,
-          color: '#3D2B1A',
-        }}>
-          Why Yadawi?
-        </div>
-      </div>
-
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr 1fr',
-        gap: 10,
-        padding: '0 20px 24px',
-      }}>
-        {features.map((feature) => (
-          <div key={feature.title} style={{
-            background: '#F2EAD8',
-            borderRadius: 16,
-            padding: '14px 10px',
-            textAlign: 'center',
-          }}>
-            <div style={{ fontSize: 22, marginBottom: 6 }}>{feature.icon}</div>
-            <div style={{
-              fontSize: 11,
-              fontWeight: 700,
-              color: '#3D2B1A',
-              marginBottom: 4,
-              lineHeight: 1.2,
-            }}>
-              {feature.title}
-            </div>
-            <div style={{
-              fontSize: 10,
-              color: '#8B7B6E',
-              lineHeight: 1.4,
-            }}>
-              {feature.desc}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* NEWSLETTER */}
-      <div style={{
-        margin: '0 20px 24px',
-        background: 'linear-gradient(135deg, #E8873A, #F5A623)',
-        borderRadius: 20,
-        padding: '22px 20px',
-      }}>
-        <div style={{
-          fontFamily: "'Playfair Display', serif",
-          fontSize: 18,
-          fontWeight: 700,
-          color: '#3D2B1A',
-          marginBottom: 6,
-        }}>
-          Stay Updated ✉️
-        </div>
-        <div style={{
-          fontSize: 12,
-          color: 'rgba(61,43,26,0.7)',
-          marginBottom: 14,
-        }}>
-          New workshops & events — straight to your inbox.
-        </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <input
-            placeholder="your@email.com"
-            style={{
-              flex: 1,
-              background: 'white',
-              border: 'none',
-              borderRadius: 12,
-              padding: '10px 14px',
-              fontFamily: "'DM Sans', sans-serif",
-              fontSize: 12,
-              outline: 'none',
-              color: '#3D2B1A',
-            }}
-          />
-          <button style={{
-            background: '#3D2B1A',
-            color: 'white',
-            border: 'none',
-            borderRadius: 12,
-            padding: '10px 16px',
-            fontWeight: 700,
-            fontSize: 12,
-            cursor: 'pointer',
-            whiteSpace: 'nowrap',
-          }}>
-            Join
-          </button>
-        </div>
-      </div>
-
-      {/* FOOTER */}
-      <footer style={{
-        background: '#3D2B1A',
-        padding: '24px 20px 32px',
-      }}>
-        <img
-          src="/logo.png"
-          alt="Yadawi"
-          style={{ height: 28, width: 'auto', display: 'block', filter: 'invert(1) brightness(2)', marginBottom: 6 }}
-        />
-        <div style={{
-          fontSize: 11,
-          color: 'rgba(255,255,255,0.5)',
-          marginBottom: 20,
-          fontStyle: 'italic',
-        }}>
-          Craft Something Beautiful
-        </div>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '6px 20px',
-          marginBottom: 20,
-        }}>
-          {['Account', 'Workshops', 'Membership', 'Shop', 'Events', 'About Us', 'Contact', 'FAQs'].map(link => (
-            <div key={link} style={{
-              fontSize: 12,
-              color: 'rgba(255,255,255,0.65)',
-              cursor: 'pointer',
-              padding: '2px 0',
-            }}>
-              {link}
-            </div>
-          ))}
-        </div>
-        <div style={{
-          fontSize: 10,
-          color: 'rgba(255,255,255,0.3)',
-          paddingTop: 16,
-          borderTop: '1px solid rgba(255,255,255,0.1)',
-        }}>
-          Yadawi © 2026 · Kuwait & Saudi Arabia
-        </div>
-      </footer>
-
-      <div style={{ height: 100 }} />
-    </div>
+    </Link>
   );
 }

@@ -3,18 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Plus, Trash2, Save, Calendar } from 'lucide-react';
+import { COLORS } from '@/lib/theme';
 
-const COLORS = {
-  terracotta: '#C8622A',
-  terracottaLight: 'rgba(200, 98, 42, 0.1)',
-  bark: '#3D2B1A',
-  sand: '#F2EAD8',
-  cream: '#FAF6F0',
-  smoke: '#8B7B6E',
-  success: '#22C55E',
-  danger: '#EF4444',
-  dangerLight: 'rgba(239, 68, 68, 0.1)',
-};
 
 interface TicketType {
   id: number;

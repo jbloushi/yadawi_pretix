@@ -2,13 +2,8 @@
 
 import Link from 'next/link';
 import { useTranslation } from '@/lib/i18n';
+import { COLORS } from '@/lib/theme';
 
-const COLORS = {
-  terracotta: '#C8622A',
-  bark: '#3D2B1A',
-  sand: '#F2EAD8',
-  cream: '#FAF6F0',
-};
 
 export function Footer() {
   const { t, locale } = useTranslation();
